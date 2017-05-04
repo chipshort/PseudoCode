@@ -1,0 +1,4 @@
+{
+    "code": "while a = 1 do a; od",
+    "expected": "if (a OpLt b) then a; b; fi"
+}

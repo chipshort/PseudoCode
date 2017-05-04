@@ -1,0 +1,5 @@
+{
+    "code": "if a < b then a; //test
+    b; fi",
+    "expected": "if (a OpLt b) then a; b; fi"
+}

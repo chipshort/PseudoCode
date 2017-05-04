@@ -1,0 +1,4 @@
+{
+    "code": "a ≠ a + b ∧ a + b < b + b ∧ a < b",
+    "expected": "(((a OpNotEq (a OpAdd b)) OpBoolAnd ((a OpAdd b) OpLt (b OpAdd b))) OpBoolAnd (a OpLt b))"
+}

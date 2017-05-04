@@ -2,68 +2,95 @@ class Main
 {
     static function main() : Void
     {
-        // var test = [1, 2, 2, 2, 3, 3, 4, 5, 5, 10, 11];
+        var testCases = readTests("tests");
+        var failCounter = 0;
 
-        // for (i in 0 ... 6) {
-        //     trace(i + " gefunden bei " + binarysearch(test, i));
-        // }
+        for (test in testCases) {
+            var input = byte.ByteData.ofString(test.code);
+            var parser = new pseudocode.PseudoParser(input, test.file);
 
-        var input = byte.ByteData.ofString("if a < b then a fi");
-        var lexer = new pseudocode.PseudoLexer(input, "Test.pc");
-        var token = lexer.token(pseudocode.PseudoLexer.tok);
+            var lexer = new pseudocode.PseudoLexer(input, test.file);
+            
+            var expr = try {
+                parser.parseCode();
+            }
+            catch (e : Dynamic) {
+                failCounter++;
+                Sys.println('=== ${test.file} ===');
 
-        var parser = new pseudocode.PseudoParser(input, "Test.pc");
-        var expr = parser.parseCode();
+                Sys.println("--- Code ---");
+                Sys.println(test.code);
+                Sys.println("--- Tokens ---");
+                var token = lexer.token(pseudocode.PseudoLexer.tok);
+                while (token != Eof) {
+                    Sys.println(token);
+                    token = lexer.token(pseudocode.PseudoLexer.tok);
+                }
+                Sys.println("--- could not be parsed: ---");
+                neko.Lib.rethrow(e);
+            }
+            
+            var strs = new Array<String>();
+            for (e in expr) {
+                strs.push(pseudocode.PseudoParser.toString(e.expr));
+            }
 
-        trace(expr);
-        
-        // while (token != Eof) {
-        //     trace(token);
-        //     token = lexer.token(pseudocode.PseudoLexer.tok);
-        // }
+            var result = strs.join("\n");
 
-        //trace("Hello, world!");
-    }
+            if (result != test.expected) {
+                failCounter++;
+                Sys.println('=== ${test.file} ===');
 
-    static function binarysearch(array : Array<Int>, x : Int) : Int
-    {
-        var l = 0;
-        var r = array.length - 1;
-        var back = -1;
+                Sys.println("--- Code ---");
+                Sys.println(test.code);
+                Sys.println("-- was parsed to --");
+                Sys.println(strs.join("\n"));
+                Sys.println("-- raw expressions --");
+                Sys.println(expr);
+                Sys.println("-- but should be --");
+                Sys.println(test.expected);
 
-        while (l <= r) {
-            var m = Math.floor((l + r) / 2);
-            //trace(l + " " + r + " " + m);
-            if (array[m] == x)
-                back = m;
-            if (x > array[m])
-                l = m + 1;
-            else
-                r = m - 1;
+                Sys.println("--- Tokens ---");
+                var token = lexer.token(pseudocode.PseudoLexer.tok);
+                while (token != Eof) {
+                    Sys.println(token);
+                    token = lexer.token(pseudocode.PseudoLexer.tok);
+                }
+
+                Sys.println('=== End of ${test.file} ===');
+                Sys.println("");
+            }
         }
 
-        return back;
+        if (failCounter != 0)
+            Sys.println('$failCounter of ${testCases.length} tests failed ✗');
+        else
+            Sys.println('All ${testCases.length} tests succeeded ✓');
     }
 
-    static function binaryTest(array : Array<Int>, x : Int) : Int
+    static function readTests(folder : String) : Array<Test>
     {
-        var l = 0;
-        var r = array.length - 1;
+        var tests = new Array<Test>();
 
-        while (l <= r) {
-            var m = Math.floor((l + r) / 2);
-            //trace(l + " " + r + " " + m);
-            if (array[m] == x) {
-                return m;
-            }
-            if (x > array[m]) {
-                l = m + 1;
+        for (file in sys.FileSystem.readDirectory(folder)) {
+            var fullFile = haxe.io.Path.join([folder, file]);
+
+            if (sys.FileSystem.isDirectory(fullFile)) {
+                tests = tests.concat(readTests(fullFile));
             }
             else {
-                r = m - 1;
+                var content = haxe.Json.parse(sys.io.File.getContent(fullFile));
+                content.file = fullFile;
+                tests.push(content);
             }
         }
 
-        return -1;
+        return tests;
     }
+}
+
+typedef Test = {
+    code : String,
+    expected : String,
+    file : String
 }

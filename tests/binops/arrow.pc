@@ -1,0 +1,4 @@
+{
+    "code": "a <- 2 + b < 2;",
+    "expected": "(a OpArrow ((2 OpAdd b) OpLt 2))"
+}
