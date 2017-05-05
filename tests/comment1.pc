@@ -3,5 +3,5 @@
     a <- 2;
     b <- 2;
 fi",
-    "expected": "if (a OpLt b) { (a OpAssign 2); (b OpAssign 2); }"
+    "expected": "if (a OpLt b) { (a OpAssign 2); (b OpAssign 2); };"
 }

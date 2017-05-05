@@ -7,5 +7,5 @@
 
         fi
     od",
-    "expected": "while (a OpEq 1) { a; if (a OpEq 1) { test; } else {  }; }"
+    "expected": "while (a OpEq 1) { a; if (a OpEq 1) { test; } else { }; };"
 }

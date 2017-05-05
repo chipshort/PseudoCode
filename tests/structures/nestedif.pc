@@ -11,5 +11,5 @@
             fi
         fi
     fi",
-    "expected": "if (a OpLt b) { a; b; if (a OpGt b) {  }; if (a OpGt b) {  } else { if (a OpLt b) { a; }; }; }"
+    "expected": "if (a OpLt b) { a; b; if (a OpGt b) { }; if (a OpGt b) { } else { if (a OpLt b) { a; }; }; };"
 }

@@ -1,4 +1,4 @@
 {
     "code": "if a < b then a; else b; fi",
-    "expected": "if (a OpLt b) { a; } else { b; }"
+    "expected": "if (a OpLt b) { a; } else { b; };"
 }

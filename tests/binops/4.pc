@@ -1,4 +1,4 @@
 {
     "code": "a ∧ a + b > 2;",
-    "expected": "(a OpBoolAnd ((a OpAdd b) OpGt 2))"
+    "expected": "(a OpBoolAnd ((a OpAdd b) OpGt 2));"
 }

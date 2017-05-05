@@ -105,19 +105,12 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseNext(expr : ExprDef) : ExprDef
 	{
 		return switch stream {
-			case [Binop(op)]: //binary operators //guard was not working here
-				if (!isAssignment(op)) {
-					var next = parseExpr();
-					makeBinop(op, expr, next);
-				}
-				else {
-					throw unexpected();
-				}
+			case [Binop(op), next = parseExpr()]: //binary operators
+				//I'm pretty sure OpAssign and OpAssignOp should not be expressions, but statements.
+				makeBinop(op, expr, next);
 			case [BkOpen, interval = parseExpr(), BkClose]: //Array access / creation
-				EArray(e(expr), e(interval));
+				parseNext(EArray(e(expr), e(interval)));
 			case _:
-				trace(expr);
-				trace(peek(0));
 				expr;
 		}
 	}
@@ -152,17 +145,25 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		}
 	}
 
+	public static function statementsToString(statements : Array<Expr>) : String
+	{
+		return toString(EBlock(statements));
+	}
+
 	public static function toString(expr : ExprDef) : String
 	{
 		return switch (expr) {
 			case EBlock(exprs):
 				var str = new Array<String>();
-				for (ex in exprs)
-					str.push(toString(ex.expr) + ";");
+				str.push("{");
+				for (ex in exprs) {
+					str.push('${toString(ex.expr)};');
+				}
+				str.push("}");
 				
 				str.join(" ");
 			case EWhile(cond, e, true):
-				'while ${toString(cond.expr)} { ${toString(e.expr)} }';
+				'while ${toString(cond.expr)} ${toString(e.expr)}';
 			case EUnop(_, _, _):
 				haxe.macro.ExprTools.toString(e(expr));
 			case EBinop(OpInterval, e1, e2):
@@ -176,7 +177,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 			case EArray(e1, e2):
 				'${toString(e1.expr)}[${toString(e2.expr)}]';
 			case EIf(cond, eif, eelse):
-				'if ${toString(cond.expr)} { ${toString(eif.expr)} }' + (eelse != null ? ' else { ${toString(eelse.expr)} }' : '');
+				'if ${toString(cond.expr)} ${toString(eif.expr)}' + (eelse != null ? ' else ${toString(eelse.expr)}' : '');
 			default:
 				"";
 		}

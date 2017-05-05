@@ -1,5 +1,5 @@
 {
     "code": "A[1..3];
     A[2] <- 2;",
-    "expected": "A[1..3]; A[2] = 2;"
+    "expected": "A[1..3];(A[2] OpAssign 2);"
 }

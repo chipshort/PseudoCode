@@ -30,21 +30,19 @@ class Main
                 neko.Lib.rethrow(e);
             }
             
-            var strs = new Array<String>();
+            var result = new StringBuf();
             for (e in expr) {
-                strs.push(pseudocode.PseudoParser.toString(e.expr));
+                result.add(pseudocode.PseudoParser.toString(e.expr) + ";");
             }
 
-            var result = strs.join("\n");
-
-            if (result != test.expected) {
+            if (result.toString() != test.expected) {
                 failCounter++;
                 Sys.println('=== ${test.file} ===');
 
                 Sys.println("--- Code ---");
                 Sys.println(test.code);
                 Sys.println("-- was parsed to --");
-                Sys.println(strs.join("\n"));
+                Sys.println(result.toString());
                 Sys.println("-- raw expressions --");
                 Sys.println(expr);
                 Sys.println("-- but should be --");
