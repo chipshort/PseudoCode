@@ -23,6 +23,11 @@ enum Expr {
 	EParenthesis( e : Expr );
 
 	/**
+		the result of this expression should be floored.
+	**/
+	EFloor(e : Expr);
+
+	/**
 		An unary operator `op` on `e`:
 
 		* e++ (op = OpIncrement, postFix = true)
@@ -259,7 +264,7 @@ enum Binop {
 
 //Lexer
 enum Keyword {
-	KwdFunc;
+	KwdFunc; //TODO: implement functions
 	KwdCnuf;
 
 	
@@ -273,13 +278,13 @@ enum Keyword {
 	KwdDo;
 	KwdOd;
 	KwdTo;
-	KwdDownTo;
-	KwdBreak;
-	KwdContinue;
+	KwdDownto;
+	KwdBreak; //TODO: break
+	KwdContinue; //TODO: continue
 	KwdRepeat;
 	KwdUntil;
 
-	KwdReturn; //TODO: implement
+	KwdReturn;
 
 	KwdTrue;
 	KwdFalse;
@@ -290,18 +295,18 @@ enum Token {
 	Const(c:Constant);
 	Unop(op:Unop);
 	Binop(op:Binop);
-	Comment(s:String);
+	// Comment(s:String);
 	CommentLine(s:String);
 	Semicolon;
-	Dot;
-	Comma;
+	Dot; //TODO: implement dot access
+	Comma; //TODO: use comma token?
 	BkOpen;
 	BkClose;
 	//TODO: implement gauss brackets
-	FloorOpen;
-	FloorClose;
+	FloorOpen; //⌊
+	FloorClose; //⌋
+	//TODO: maybe ceil too?
 
-	//TODO: implement ()
 	POpen;
 	PClose;
 	Eof;

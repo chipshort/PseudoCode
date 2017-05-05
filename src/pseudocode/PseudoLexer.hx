@@ -49,6 +49,8 @@ class PseudoLexer extends Lexer implements hxparse.RuleBuilder
 		"]" => BkClose,
 		"\\(" => POpen,
         "\\)" => PClose,
+		"⌊" => FloorOpen,
+		"⌋" => FloorClose,
         ident => {
 			var kwd = keywords.get(lexer.current);
 			if (kwd != null)

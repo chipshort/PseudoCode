@@ -1,7 +1,7 @@
 {
     "code": "l <- 1; r <- 1;
     while l ≤ r do
-        //m <- ⌊(l + r) / 2⌋;
+        m <- ⌊(l + r) / 2⌋;
         if A[m] = x then
             return m;
         fi
@@ -12,5 +12,5 @@
         fi
     od
     return 0;",
-    "expected": "(l OpAssign 1);(r OpAssign 1);while (l OpLte r) { };"
+    "expected": "(l OpAssign 1);(r OpAssign 1);while (l OpLte r) { (m OpAssign FLOOR(EBinop(OpDiv,EParenthesis(EBinop(OpAdd,EConst(CIdent(l)),EConst(CIdent(r)))),EConst(CInt(2))))); if (A[m] OpEq x) { return m; }; if (x OpGt A[m]) { (l OpAssign (m OpAdd 1)); } else { (r OpAssign (m OpAdd 1)); }; };return 0;"
 }

@@ -19,9 +19,14 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseExpr() : Expr
 	{
 		return switch stream {
+			case [FloorOpen, expr = parseExpr(), FloorClose]:
+				parseNext(EFloor(expr));
 			case [POpen, expr = parseExpr(), PClose]:
-				trace(expr);
 				parseNext(EParenthesis(expr));
+			case [Kwd(KwdTrue)]:
+				EConst(CIdent("true"));
+			case [Kwd(KwdFalse)]:
+				EConst(CIdent("false"));
 			case [Const(c)]:
 				parseNext(EConst(c));
 			case [CommentLine(_)]:
@@ -77,8 +82,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 								EIf(cond, EBlock(body), EBlock(elseBody));
 						}
 				}
-			//TODO: KwdDownTo
-			case [Kwd(KwdFor), decl = parseExpr(), Kwd(KwdTo), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
+			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
 				var id = null;
 				var begin = null;
 				switch (decl) {
@@ -89,16 +93,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 						unexpected();
 				}
 
-				EFor(id, begin, end, EBlock(body), true);
-
-				// body.push(EUnop(OpIncrement, false, id));
-				// EBlock([
-				// 	EBinop(OpAssign, id, begin),
-				// 	EWhile(
-				// 		EBinop(OpLte, id, end),
-				// 		EBlock(body),
-				// 		true)
-				// ]);
+				EFor(id, begin, end, EBlock(body), to == KwdTo);
 			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
 				EWhile(cond, EBlock(body), true);
 			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseExpr()]:
@@ -180,13 +175,15 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				str.push("}");
 				
 				str.join(" ");
+			case EFloor(e):
+				'FLOOR($e)';
 			case EReturn(e):
 				if (e != null)
 					'return ${toString(e)}';
 				else
 					'return';
 			case EFor(id, begin, end, body, up):
-				'for (${toString(id)} <- ${toString(begin)} ${up ? "to" : "downto"} ${end}) ${toString(body)}';
+				'for (${toString(id)} <- ${toString(begin)} ${up ? "to" : "downto"} ${toString(end)}) ${toString(body)}';
 			case EParenthesis(e):
 				'(${toString(e)})';
 			case EWhile(cond, e, false):
@@ -201,8 +198,6 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				toString(e1) + ".." + toString(e2);
 			case EBinop(op, e1, e2):
 				'(${toString(e1)} $op ${toString(e2)})';
-			case EConst(CIdent(name)):
-				name;
 			case EConst(c):
 				switch (c) {
 					case CFloat(i) | CIdent(i) | CInt(i):

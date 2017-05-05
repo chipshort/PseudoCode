@@ -1,0 +1,4 @@
+{
+    "code": "for a = 10 downto 1 do a; od",
+    "expected": "for (a <- 10 downto 1) { a; };"
+}
