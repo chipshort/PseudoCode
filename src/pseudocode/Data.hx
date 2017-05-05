@@ -23,7 +23,7 @@ enum Keyword {
 	KwdRepeat;
 	KwdUntil;
 
-	KwdReturn;
+	KwdReturn; //TODO: implement
 
 	KwdTrue;
 	KwdFalse;
@@ -41,6 +41,11 @@ enum Token {
 	Comma;
 	BkOpen;
 	BkClose;
+	//TODO: implement gauss brackets
+	FloorOpen;
+	FloorClose;
+
+	//TODO: implement ()
 	POpen;
 	PClose;
 	Eof;

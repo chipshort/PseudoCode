@@ -20,6 +20,9 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseExpr() : ExprDef
 	{
 		return switch stream {
+			case [POpen, expr = parseExpr(), PClose]:
+				trace(expr);
+				parseNext(EParenthesis(e(expr)));
 			case [Const(c)]:
 				parseNext(EConst(c));
 			case [CommentLine(_)]:
@@ -64,7 +67,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseStatement()
 	{
 		return switch stream {
-			//TODO: make OpAssign and OpAssignOp statements, investigate why guard is not working.
+			//TODO: make OpAssign and OpAssignOp statements
 			case [Kwd(KwdIf), cond = parseExpr(), Kwd(KwdThen)]: //read if statement until then
 				switch stream {
 					case [body = parseStatementList(isFiOrElse)]: //found a fi or an else
@@ -99,6 +102,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseExpr()]:
 				var cond = EUnop(OpNot, false, e(until));
 				EWhile(e(EBlock(body)), e(cond), false);
+			case [CommentLine(_)]:
+				parseStatement();
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
 			}
@@ -166,6 +171,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				str.push("}");
 				
 				str.join(" ");
+			case EParenthesis(e):
+				'(${toString(e.expr)})';
 			case EWhile(cond, e, false):
 				'do ${toString(cond.expr)} while ${toString(e.expr)}';
 			case EWhile(cond, e, true):
