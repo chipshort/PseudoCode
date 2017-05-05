@@ -32,7 +32,7 @@ class Main
             
             var result = new StringBuf();
             for (e in expr) {
-                result.add(pseudocode.PseudoParser.toString(e.expr) + ";");
+                result.add(pseudocode.PseudoParser.toString(e) + ";");
             }
 
             if (result.toString() != test.expected) {

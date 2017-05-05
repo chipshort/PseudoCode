@@ -1,6 +1,5 @@
 package pseudocode;
 
-import haxe.macro.Expr;
 import pseudocode.PseudoLexer;
 import pseudocode.Data;
 
@@ -17,12 +16,12 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		return parseStatementList(isEof);
 	}
 
-	function parseExpr() : ExprDef
+	function parseExpr() : Expr
 	{
 		return switch stream {
 			case [POpen, expr = parseExpr(), PClose]:
 				trace(expr);
-				parseNext(EParenthesis(e(expr)));
+				parseNext(EParenthesis(expr));
 			case [Const(c)]:
 				parseNext(EConst(c));
 			case [CommentLine(_)]:
@@ -37,7 +36,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		while (!stop(peek(0))) {
 			switch stream {
 				case [statement = parseStatement()]:
-					list.push(e(statement));
+					list.push(statement);
 				case _:
 					return list;
 			}
@@ -64,7 +63,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	static function isUntil(t : Token) : Bool
 		return t.match(Kwd(KwdUntil));
 
-	function parseStatement()
+	function parseStatement() : Expr
 	{
 		return switch stream {
 			//TODO: make OpAssign and OpAssignOp statements
@@ -73,11 +72,12 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case [body = parseStatementList(isFiOrElse)]: //found a fi or an else
 						switch stream {
 							case [Kwd(KwdFi)]: //it was a fi
-								EIf(e(cond), e(EBlock(body)), null);
+								EIf(cond, EBlock(body), null);
 							case [Kwd(KwdElse), elseBody = parseStatementList(isFi), Kwd(KwdFi)]: //was an else
-								EIf(e(cond), e(EBlock(body)), e(EBlock(elseBody)));
+								EIf(cond, EBlock(body), EBlock(elseBody));
 						}
 				}
+			//TODO: KwdDownTo
 			case [Kwd(KwdFor), decl = parseExpr(), Kwd(KwdTo), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
 				var id = null;
 				var begin = null;
@@ -89,51 +89,61 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 						unexpected();
 				}
 
-				body.push(e(EUnop(OpIncrement, false, id)));
-				EBlock([
-					e(EBinop(OpAssign, id, begin)),
-					e(EWhile(
-						e(EBinop(OpLte, id, e(end))),
-						e(EBlock(body)), true)
-					)
-				]);
+				EFor(id, begin, end, EBlock(body), true);
+
+				// body.push(EUnop(OpIncrement, false, id));
+				// EBlock([
+				// 	EBinop(OpAssign, id, begin),
+				// 	EWhile(
+				// 		EBinop(OpLte, id, end),
+				// 		EBlock(body),
+				// 		true)
+				// ]);
 			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
-				EWhile(e(cond), e(EBlock(body)), true);
+				EWhile(cond, EBlock(body), true);
 			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseExpr()]:
-				var cond = EUnop(OpNot, false, e(until));
-				EWhile(e(EBlock(body)), e(cond), false);
+				var cond = EUnop(OpNot, false, until);
+				EWhile(EBlock(body), cond, false);
 			case [CommentLine(_)]:
 				parseStatement();
+			case [Kwd(KwdReturn)]:
+				switch stream {
+					case [Semicolon]:
+						EReturn();
+					case [value = parseExpr(), Semicolon]:
+						EReturn(value);
+				}
+				
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
 			}
 	}
 
-	function parseNext(expr : ExprDef) : ExprDef
+	function parseNext(expr : Expr) : Expr
 	{
 		return switch stream {
 			case [Binop(op), next = parseExpr()]: //binary operators
 				//I'm pretty sure OpAssign and OpAssignOp should not be expressions, but statements.
 				makeBinop(op, expr, next);
 			case [BkOpen, interval = parseExpr(), BkClose]: //Array access / creation
-				parseNext(EArray(e(expr), e(interval)));
+				parseNext(EArray(expr, interval));
 			case _:
 				expr;
 		}
 	}
 
-	function makeBinop(op : haxe.macro.Expr.Binop, e1 : ExprDef, e2 : ExprDef) : ExprDef
+	function makeBinop(op : Binop, e1 : Expr, e2 : Expr) : Expr
 	{
 		return switch (e2) {
 			case EBinop(_op, _e, _e2) if (mustSwap(op, _op)):
-				var swapped = makeBinop(op, e1, _e.expr);
-				EBinop(_op, e(swapped), _e2);
+				var swapped = makeBinop(op, e1, _e);
+				EBinop(_op, swapped, _e2);
 			case _:
-				EBinop(op, e(e1), e(e2));
+				EBinop(op, e1, e2);
 		}
 	}
 
-	static function operatorPrecedence(op : haxe.macro.Expr.Binop)
+	static function operatorPrecedence(op : Binop)
 	{
 		return switch (op) {
 			case OpMult | OpDiv | OpMod: {p: 12, left: true};
@@ -147,7 +157,6 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 			case OpBoolAnd : {p: 4, left: true};
 			case OpBoolOr : {p: 3, left: true};
 			case OpInterval : {p: 1, left: true};
-			case OpArrow : {p: 1, left: true}; //unnecessary
 			case OpAssign | OpAssignOp(_) : {p: 1, left: false};
 		}
 	}
@@ -157,7 +166,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		return toString(EBlock(statements));
 	}
 
-	public static function toString(expr : ExprDef) : String
+	public static function toString(expr : Expr) : String
 	{
 		if (expr == null) return null;
 
@@ -166,51 +175,54 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				var str = new Array<String>();
 				str.push("{");
 				for (ex in exprs) {
-					str.push('${toString(ex.expr)};');
+					str.push('${toString(ex)};');
 				}
 				str.push("}");
 				
 				str.join(" ");
+			case EReturn(e):
+				if (e != null)
+					'return ${toString(e)}';
+				else
+					'return';
+			case EFor(id, begin, end, body, up):
+				'for (${toString(id)} <- ${toString(begin)} ${up ? "to" : "downto"} ${end}) ${toString(body)}';
 			case EParenthesis(e):
-				'(${toString(e.expr)})';
+				'(${toString(e)})';
 			case EWhile(cond, e, false):
-				'do ${toString(cond.expr)} while ${toString(e.expr)}';
+				'do ${toString(cond)} while ${toString(e)}';
 			case EWhile(cond, e, true):
-				'while ${toString(cond.expr)} ${toString(e.expr)}';
+				'while ${toString(cond)} ${toString(e)}';
 			case EUnop(op, false, e):
-				'($op ${toString(e.expr)})';
+				'($op ${toString(e)})';
 			case EUnop(op, true, e):
-				'(${toString(e.expr)} $op)';
+				'(${toString(e)} $op)';
 			case EBinop(OpInterval, e1, e2):
-				toString(e1.expr) + ".." + toString(e2.expr);
+				toString(e1) + ".." + toString(e2);
 			case EBinop(op, e1, e2):
-				'(${toString(e1.expr)} $op ${toString(e2.expr)})';
+				'(${toString(e1)} $op ${toString(e2)})';
 			case EConst(CIdent(name)):
 				name;
 			case EConst(c):
-				cast haxe.macro.ExprTools.getValue(e(expr));
+				switch (c) {
+					case CFloat(i) | CIdent(i) | CInt(i):
+						i;
+				}
 			case EArray(e1, e2):
-				'${toString(e1.expr)}[${toString(e2.expr)}]';
+				'${toString(e1)}[${toString(e2)}]';
 			case EIf(cond, eif, eelse):
-				'if ${toString(cond.expr)} ${toString(eif.expr)}' + (eelse != null ? ' else ${toString(eelse.expr)}' : '');
+				'if ${toString(cond)} ${toString(eif)}' + (eelse != null ? ' else ${toString(eelse)}' : '');
 			default:
 				"";
 		}
 	}
 
-	function mustSwap(op1 : haxe.macro.Expr.Binop, op2 : haxe.macro.Expr.Binop) : Bool
+	function mustSwap(op1 : Binop, op2 : Binop) : Bool
 	{
 		var prec1 = operatorPrecedence(op1);
 		var prec2 = operatorPrecedence(op2);
 		return prec1.left && prec1.p >= prec2.p;
 	}
-
-	static function e(e : ExprDef)
-	{
-		return {expr: e, pos: null};
-	}
-
-
 }
 
 
