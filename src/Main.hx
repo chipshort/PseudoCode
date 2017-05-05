@@ -2,7 +2,12 @@ class Main
 {
     static function main() : Void
     {
-        var testCases = readTests("tests");
+        runTests("tests");
+    }
+
+    static function runTests(folder : String) : Void
+    {
+        var testCases = readTests(folder);
         var failCounter = 0;
 
         for (test in testCases) {
