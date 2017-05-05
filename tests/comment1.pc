@@ -1,5 +1,7 @@
 {
-    "code": "if a < b then a; //test
-    b; fi",
-    "expected": "if (a OpLt b) then a; b; fi"
+    "code": "if a < b then
+    a <- 2;
+    b <- 2;
+fi",
+    "expected": "if (a OpLt b) { (a OpAssign 2); (b OpAssign 2); }"
 }

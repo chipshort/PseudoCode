@@ -1,0 +1,11 @@
+{
+    "code": "while a = 1 do
+        a;
+        if a = 1 then
+            test;
+        else
+
+        fi
+    od",
+    "expected": "while (a OpEq 1) { a; if (a OpEq 1) { test; } else {  }; }"
+}

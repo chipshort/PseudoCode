@@ -1,4 +1,4 @@
 {
-    "code": "a ≠ a / b",
+    "code": "a ≠ a / b;",
     "expected": "(a OpNotEq (a OpDiv b))"
 }

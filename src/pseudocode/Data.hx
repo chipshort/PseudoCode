@@ -36,7 +36,6 @@ enum Token {
 	CommentLine(s:String);
 	Semicolon;
 	Dot;
-	Arrow; //<-
 	Comma;
 	BkOpen;
 	BkClose;

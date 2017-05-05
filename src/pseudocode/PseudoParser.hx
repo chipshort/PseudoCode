@@ -14,78 +14,111 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 
 	public function parseCode() : Array<Expr>
 	{
-		return parseExprList(Eof);
+		return parseStatementList(isEof);
 	}
 
 	function parseExpr() : ExprDef
 	{
 		return switch stream {
-			//, body = parseUntilOr(Kwd(KwdFi), Kwd(KwdElse)) // TODO parse body
-			case [Kwd(KwdIf), cond = parseExpr(), Kwd(KwdThen), body = tryParseExprList(Eof)]: //using Eof as stub, some weird shit going on here
-				switch stream {
-					case [Kwd(KwdFi)]:
-						EIf(e(cond), e(EBlock(body)), null);
-					case [Kwd(KwdElse), elseBody = tryParseExprList(Kwd(KwdFi)), Kwd(KwdFi)]:
-						EIf(e(cond), e(EBlock(body)), e(EBlock(elseBody)));
-				}
 			case [Const(c)]:
-				tryParseNext(EConst(c));
-			case [Semicolon | CommentLine(_)]:
-				null;
+				parseNext(EConst(c));
+			case [CommentLine(_)]:
+				parseExpr();
 		};
 	}
 
-	function tryParseExprList(stop : Token)
+	function parseStatementList(stop : Token->Bool)
 	{
 		var list = new Array<Expr>();
-		try {
-			while (peek(0) != stop) {
-				switch stream {
-					case [expr = parseExpr()]:
-						if (expr != null)
-							list.push(e(expr));
-				}
-			}
-		}
-		catch (e : hxparse.NoMatch<Dynamic>) {
-			
-		}
 
-		return list;
-	}
-
-	function parseExprList(stop : Token)
-	{
-		var list = new Array<Expr>();
-		while (peek(0) != stop) {
+		while (!stop(peek(0))) {
 			switch stream {
-				case [Semicolon]:
-				case [expr = parseExpr()]:
-					if (expr != null)
-						list.push(e(expr));
+				case [statement = parseStatement()]:
+					list.push(e(statement));
+				case _:
+					return list;
 			}
 		}
 
 		return list;
 	}
 
-	function tryParseNext(e : ExprDef) : ExprDef
-	{
-		try {
-			return parseNext(e);
-		}
-		catch (e : hxparse.NoMatch<Dynamic>) {}
+	static function isFiOrElse(t : Token) : Bool
+		return t.match(Kwd(KwdFi) | Kwd(KwdElse));
 
-		return e;
+	static function isFi(t : Token) : Bool
+		return t.match(Kwd(KwdFi));
+
+	static function isEof(t : Token) : Bool
+		return t.match(Eof);
+	
+	static function isElse(t : Token) : Bool
+		return t.match(Kwd(KwdElse));
+	
+	static function isOd(t : Token) : Bool
+		return t.match(Kwd(KwdOd));
+
+	static function isAssignment(op : haxe.macro.Expr.Binop) : Bool {
+		return op.match(OpAssign | OpAssignOp(_));
+	}
+
+	function parseStatement()
+	{
+		return switch stream {
+			//TODO: make OpAssign and OpAssignOp statements, investigate why guard is not working.
+			case [Kwd(KwdIf), cond = parseExpr(), Kwd(KwdThen)]: //read if statement until then
+				switch stream {
+					case [body = parseStatementList(isFiOrElse)]: //found a fi or an else
+						switch stream {
+							case [Kwd(KwdFi)]: //it was a fi
+								EIf(e(cond), e(EBlock(body)), null);
+							case [Kwd(KwdElse), elseBody = parseStatementList(isFi), Kwd(KwdFi)]: //was an else
+								EIf(e(cond), e(EBlock(body)), e(EBlock(elseBody)));
+						}
+				}
+			case [Kwd(KwdFor), decl = parseExpr(), Kwd(KwdTo), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
+				var id = null;
+				var begin = null;
+				switch (decl) {
+					case EBinop(OpEq, identifier, start):
+						id = identifier;
+						begin = start;
+					case _:
+						unexpected();
+				}
+
+				body.push(e(EUnop(OpIncrement, false, id)));
+				EBlock([
+					e(EBinop(OpAssign, id, begin)),
+					e(EWhile(
+						e(EBinop(OpLte, id, e(end))),
+						e(EBlock(body)), true)
+					)
+				]);
+			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
+				EWhile(e(cond), e(EBlock(body)), true);
+			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
+				expr;
+			}
 	}
 
 	function parseNext(expr : ExprDef) : ExprDef
 	{
 		return switch stream {
-			case [Binop(op), next = parseExpr()]: //binary operators
-				makeBinop(op, expr, next);
+			case [Binop(op)]: //binary operators //guard was not working here
+				if (!isAssignment(op)) {
+					var next = parseExpr();
+					makeBinop(op, expr, next);
+				}
+				else {
+					throw unexpected();
+				}
 			case [BkOpen, interval = parseExpr(), BkClose]: //Array access / creation
 				EArray(e(expr), e(interval));
+			case _:
+				trace(expr);
+				trace(peek(0));
+				expr;
 		}
 	}
 
@@ -114,7 +147,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 			case OpBoolAnd : {p: 4, left: true};
 			case OpBoolOr : {p: 3, left: true};
 			case OpInterval : {p: 1, left: true};
-			case OpArrow : {p: 1, left: true};
+			case OpArrow : {p: 1, left: true}; //unnecessary
 			case OpAssign | OpAssignOp(_) : {p: 1, left: false};
 		}
 	}
@@ -128,6 +161,10 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					str.push(toString(ex.expr) + ";");
 				
 				str.join(" ");
+			case EWhile(cond, e, true):
+				'while ${toString(cond.expr)} { ${toString(e.expr)} }';
+			case EUnop(_, _, _):
+				haxe.macro.ExprTools.toString(e(expr));
 			case EBinop(OpInterval, e1, e2):
 				toString(e1.expr) + ".." + toString(e2.expr);
 			case EBinop(op, e1, e2):
@@ -139,7 +176,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 			case EArray(e1, e2):
 				'${toString(e1.expr)}[${toString(e2.expr)}]';
 			case EIf(cond, eif, eelse):
-				'if ${toString(cond.expr)} then ${toString(eif.expr)}' + (eelse != null ? ' else ${toString(eelse.expr)}' : '') + ' fi';
+				'if ${toString(cond.expr)} { ${toString(eif.expr)} }' + (eelse != null ? ' else { ${toString(eelse.expr)} }' : '');
 			default:
 				"";
 		}

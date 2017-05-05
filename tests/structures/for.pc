@@ -1,4 +1,4 @@
 {
     "code": "for a = 1 to 10 do a; od",
-    "expected": "if (a OpLt b) then a; b; fi"
+    "expected": "(a OpAssign 1); while (a OpLte 10) { a; ++a; };"
 }
