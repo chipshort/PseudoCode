@@ -1,0 +1,7 @@
+{
+    "code": "i <- 1;
+    while i ≤ n ∧ A[i] ≠ x do
+        i <- i + 1;
+    od",
+    "expected": "(i OpAssign 1);while ((i OpLte n) OpBoolAnd (A[i] OpNotEq x)) { (i OpAssign (i OpAdd 1)); };"
+}

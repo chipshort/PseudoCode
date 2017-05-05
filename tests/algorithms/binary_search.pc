@@ -1,0 +1,16 @@
+{
+    "code": "l <- 1; r <- 1;
+    while l ≤ r do
+        m <- ⌊(l + r) / 2⌋;
+        if A[m] = x then
+            return m;
+        fi
+        if x > A[m] then
+            l <- m + 1;
+        else
+            r <- m + 1;
+        fi
+    od
+    return 0;",
+    "expected": "(i OpAssign 1);while ((i OpLte n) OpBoolAnd (A[i] OpNotEq x)) { (i OpAssign (i OpAdd 1)); };"
+}
