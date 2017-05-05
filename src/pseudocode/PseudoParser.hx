@@ -11,9 +11,9 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		super(ts);
     }
 
-	public function parseCode() : Array<Expr>
+	public function parseCode() : Expr
 	{
-		return parseStatementList(isEof);
+		return EBlock(parseStatementList(isEof));
 	}
 
 	function parseExpr() : Expr
