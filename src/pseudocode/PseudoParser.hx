@@ -58,9 +58,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	static function isOd(t : Token) : Bool
 		return t.match(Kwd(KwdOd));
 
-	static function isAssignment(op : haxe.macro.Expr.Binop) : Bool {
-		return op.match(OpAssign | OpAssignOp(_));
-	}
+	static function isUntil(t : Token) : Bool
+		return t.match(Kwd(KwdUntil));
 
 	function parseStatement()
 	{
@@ -97,6 +96,9 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				]);
 			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
 				EWhile(e(cond), e(EBlock(body)), true);
+			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseExpr()]:
+				var cond = EUnop(OpNot, false, e(until));
+				EWhile(e(EBlock(body)), e(cond), false);
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
 			}
@@ -152,6 +154,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 
 	public static function toString(expr : ExprDef) : String
 	{
+		if (expr == null) return null;
+
 		return switch (expr) {
 			case EBlock(exprs):
 				var str = new Array<String>();
@@ -162,10 +166,14 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				str.push("}");
 				
 				str.join(" ");
+			case EWhile(cond, e, false):
+				'do ${toString(cond.expr)} while ${toString(e.expr)}';
 			case EWhile(cond, e, true):
 				'while ${toString(cond.expr)} ${toString(e.expr)}';
-			case EUnop(_, _, _):
-				haxe.macro.ExprTools.toString(e(expr));
+			case EUnop(op, false, e):
+				'($op ${toString(e.expr)})';
+			case EUnop(op, true, e):
+				'(${toString(e.expr)} $op)';
 			case EBinop(OpInterval, e1, e2):
 				toString(e1.expr) + ".." + toString(e2.expr);
 			case EBinop(op, e1, e2):

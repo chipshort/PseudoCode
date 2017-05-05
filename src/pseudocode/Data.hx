@@ -20,6 +20,8 @@ enum Keyword {
 	KwdDownTo;
 	KwdBreak;
 	KwdContinue;
+	KwdRepeat;
+	KwdUntil;
 
 	KwdReturn;
 

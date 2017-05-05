@@ -1,0 +1,4 @@
+{
+    "code": "repeat a <- 1; until a = 1;",
+    "expected": "do { (a OpAssign 1); } while (OpNot (a OpEq 1));"
+}
