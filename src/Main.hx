@@ -3,13 +3,13 @@ class Main
     static function main() : Void
     {
         var interp = new pseudocode.Interpreter();
-        trace(interp.execute("i <- 3 % 2 + 2; return i;"));
+        trace(interp.execute("i <- 3 % 2 + 2; return i;")); // 3
 
         var interp = new pseudocode.Interpreter();
-        trace(interp.execute("A[1..2]; A[1] <- 3; return A[1];"));
+        trace(interp.execute("A[1..2]; A[1] <- 3; return A[1];")); // 3
 
         var interp = new pseudocode.Interpreter();
-        trace(interp.execute("if w2 then return 1; else return 0; fi"));
+        trace(interp.execute("if w2 then return 1; else return 0; fi")); // 0
 
         var interp = new pseudocode.Interpreter();
         trace(interp.execute("
@@ -29,7 +29,7 @@ class Main
         if i > n then i <- 0; fi
 
         return i;
-    "));
+        ")); //0
 
         runTests("tests");
     }

@@ -5,20 +5,21 @@ import pseudocode.runtime.PseudoArray;
 
 class Interpreter
 {
-    var memory = new Map<String, Dynamic>();
+    /** Contains all variables and their values **/
+    public var memory = new Map<String, Dynamic>();
 
     public function new()
     {
-        
     }
 
-    public function execute(code : String, ?file : String) : Dynamic
+    /** Execute `code` **/
+    public function execute(code : String) : Dynamic
     {
         var input = byte.ByteData.ofString(code);
-        var parser = new pseudocode.PseudoParser(input, file);
+        var parser = new pseudocode.PseudoParser(input, null);
         var parsed = parser.parseCode();
 
-        var result = exec(parsed);
+        var result = eval(parsed);
         
         if (isSpecial(result)) {
             switch (result) {
@@ -31,12 +32,16 @@ class Interpreter
         return result;
     }
 
-    function exec(expr : Expr) : Dynamic
+    /**
+        Internal function that takes an `expr`, evaluates it and returns the result.
+        Some special return values are used. See SpecialValue for more information.
+    **/
+    function eval(expr : Expr) : Dynamic
     {
         var result : Dynamic = switch (expr) {
             case EBlock(exprs):
                 for (e in exprs) {
-                    var value = exec(e);
+                    var value = eval(e);
                     if (isSpecial(value))
                         return value;
                 }
@@ -45,7 +50,7 @@ class Interpreter
                 switch [e1, e2] {
                     case [EConst(CIdent(name)), EBinop(OpInterval, start, end)]: //A[1..2]
                         if (!memory.exists(name)) {//if name does not exist, this is a declaration
-                            memory[name] = new PArray(exec(start), exec(end));
+                            memory[name] = new PArray(eval(start), eval(end));
                         }
                         else {
                             trace(expr);
@@ -53,8 +58,8 @@ class Interpreter
                         }
                         null;
                     case [_, _]: //Assume this is a normal array access, for example: A[2]
-                        var array : PArray = exec(e1);
-                        array[exec(e2)];
+                        var array : PArray = eval(e1);
+                        array[eval(e2)];
                 }
             case EConst(const):
                 switch (const) {
@@ -68,57 +73,57 @@ class Interpreter
             case EBinop(op, e1, e2):
                 switch (op) {
                     case OpAdd:
-                        exec(e1) + exec(e2);
+                        eval(e1) + eval(e2);
                     case OpAssign:
                         switch (e1) {
                             case EConst(CIdent(name)): //A <- 2
-                                memory[name] = exec(e2);
+                                memory[name] = eval(e2);
                             case EArray(EConst(CIdent(name)), index): //A[1] <- 2
                                 var array : PArray = memory[name];
-                                array[exec(index)] = exec(e2);
+                                array[eval(index)] = eval(e2);
                             case _:
                                 throw 'Cannot assign to $e1';
                         }
                         null; //assignment is not an expression
                     case OpAnd:
-                        exec(e1) & exec(e2);
+                        eval(e1) & eval(e2);
                     case OpAssignOp(op):
                         throw "OpAssignOp not implemented yet";
                         null; //TODO: implement
                     case OpBoolAnd:
-                        exec(e1) && exec(e2);
+                        eval(e1) && eval(e2);
                     case OpBoolOr:
-                        exec(e1) || exec(e2);
+                        eval(e1) || eval(e2);
                     case OpDiv:
-                        exec(e1) / exec(e2);
+                        eval(e1) / eval(e2);
                     case OpEq:
-                        exec(e1) == exec(e2);
+                        eval(e1) == eval(e2);
                     case OpGte:
-                        exec(e1) >= exec(e2);
+                        eval(e1) >= eval(e2);
                     case OpInterval:
                         throw 'Unexpected interval: $e1..$e2';
                     case OpGt:
-                        exec(e1) > exec(e2);
+                        eval(e1) > eval(e2);
                     case OpLt:
-                        exec(e1) < exec(e2);
+                        eval(e1) < eval(e2);
                     case OpMod:
-                        exec(e1) % exec(e2);
+                        eval(e1) % eval(e2);
                     case OpMult:
-                        exec(e1) * exec(e2);
+                        eval(e1) * eval(e2);
                     case OpNotEq:
-                        exec(e1) != exec(e2);
+                        eval(e1) != eval(e2);
                     case OpOr:
-                        exec(e1) | exec(e2);
+                        eval(e1) | eval(e2);
                     case OpLte:
-                        exec(e1) <= exec(e2);
+                        eval(e1) <= eval(e2);
                     case OpSub:
-                        exec(e1) - exec(e2);
+                        eval(e1) - eval(e2);
                 }
             case EReturn(value):
                 if (value == null)
                     null;
                 else
-                    VReturn(exec(value));
+                    VReturn(eval(value));
             case EBreak:
                 //TODO: implement break
                 null;
@@ -127,13 +132,13 @@ class Interpreter
                 null;
             case EFloor(expr):
                 //TODO: implement floor
-                Math.floor(exec(expr));
+                Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
-                var realId = exec(id);
-                var i = memory[realId] = exec(start);
-                var realEnd = exec(end);
+                var realId = eval(id);
+                var i = memory[realId] = eval(start);
+                var realEnd = eval(end);
                 while (i <= realEnd) {
-                    var val = exec(body);
+                    var val = eval(body);
                     if (isReturn(val)) return val;
 
                     ++i;
@@ -142,30 +147,30 @@ class Interpreter
                 null;
             case EWhile(cond, body, normal):
                 if (normal) {
-                    while(exec(cond)) {
-                        var val = exec(body);
+                    while(eval(cond)) {
+                        var val = eval(body);
                         if (isReturn(val)) return val;
                     }
                 }
                 else {
                     do {
-                        var val = exec(body);
+                        var val = eval(body);
                         if (isReturn(val)) return val;
-                    } while(exec(cond));
+                    } while(eval(cond));
                 }
                 null;
             case EIf(cond, body, elseBody):
-                if (exec(cond)) {
-                    var val = exec(body);
+                if (eval(cond)) {
+                    var val = eval(body);
                     if (isSpecial(val)) return val;
                 }
                 else if (elseBody != null) {
-                    var val = exec(elseBody);
+                    var val = eval(elseBody);
                     if (isSpecial(val)) return val;
                 }
                 null;
             case EParenthesis(expr):
-                exec(expr);
+                eval(expr);
             case EUnop(op, post, expr):
                 null; //TODO: implement unop
         }
@@ -184,6 +189,11 @@ class Interpreter
     }
 }
 
+/**
+    Special return values.
+    These are used to pass information up the recursion tree of the eval function.
+    For example: If a EReturn is encountered, it is immediately evaluated and returned.
+**/
 enum SpecialValue {
     VReturn(?value : Dynamic);
     // VBreak;
