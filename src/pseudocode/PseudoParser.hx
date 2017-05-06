@@ -1,10 +1,13 @@
 package pseudocode;
 
+import hxparse.Unexpected;
 import pseudocode.PseudoLexer;
 import pseudocode.Data;
 
 class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements hxparse.ParserBuilder
 {
+	var canBreak = new Array<Bool>();
+
     public function new(input:byte.ByteData, sourceName:String) {
 		var lexer = new PseudoLexer(input, sourceName);
 		var ts = new PseudoTokenSource(lexer);
@@ -70,8 +73,19 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 
 	function parseStatement() : Expr
 	{
+		//TODO: implement break and continue and make sure they can only exist in while or for blocks
 		return switch stream {
 			//TODO: make OpAssign and OpAssignOp statements
+			case [Kwd(KwdContinue), Semicolon]:
+				if (canBreak.length == 0)
+					throw new Unexpected(Kwd(KwdContinue), stream.curPos());
+				
+				EContinue;
+			case [Kwd(KwdBreak), Semicolon]:
+				if (canBreak.length == 0)
+					throw new Unexpected(Kwd(KwdBreak), stream.curPos());
+				
+				EBreak;
 			case [Kwd(KwdIf), cond = parseExpr(), Kwd(KwdThen)]: //read if statement until then
 				switch stream {
 					case [body = parseStatementList(isFiOrElse)]: //found a fi or an else
@@ -84,7 +98,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case _:
 						unexpected();
 				}
-			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
+			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), a = canBreak.push(true), body = parseStatementList(isOd)]:
+				canBreak.pop();
 				var id = null;
 				var begin = null;
 				switch (decl) {
@@ -94,11 +109,10 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case _:
 						unexpected();
 				}
-
 				EFor(id, begin, end, EBlock(body), to == KwdTo);
-			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
+			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), a = canBreak.push(true), body = parseStatementList(isOd), b = canBreak.pop(), Kwd(KwdOd)]:
 				EWhile(cond, EBlock(body), true);
-			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseExpr()]:
+			case [Kwd(KwdRepeat), a = canBreak.push(true), body = parseStatementList(isUntil), b = canBreak.pop(), Kwd(KwdUntil), until = parseExpr()]:
 				var cond = EUnop(OpNot, false, until);
 				EWhile(EBlock(body), cond, false);
 			case [CommentLine(_)]:

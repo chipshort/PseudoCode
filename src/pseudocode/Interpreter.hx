@@ -121,17 +121,14 @@ class Interpreter
                 }
             case EReturn(value):
                 if (value == null)
-                    null;
+                    VReturn(null);
                 else
                     VReturn(eval(value));
             case EBreak:
-                //TODO: implement break
-                null;
+                VBreak;
             case EContinue:
-                //TODO: implement continue
-                null;
+                VContinue;
             case EFloor(expr):
-                //TODO: implement floor
                 Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
                 var realId = eval(id);
@@ -139,7 +136,17 @@ class Interpreter
                 var realEnd = eval(end);
                 while (i <= realEnd) {
                     var val = eval(body);
-                    if (isReturn(val)) return val;
+                    if (isSpecial(val)) {
+                        switch (val) {
+                            case VReturn(_):
+                                return val;
+                            case VBreak:
+                                break;
+                            case VContinue:
+                                continue;
+                                //don't do anything here, as we will continue anyway
+                        }
+                    }
 
                     ++i;
                     ++memory[realId];
@@ -149,13 +156,34 @@ class Interpreter
                 if (normal) {
                     while(eval(cond)) {
                         var val = eval(body);
-                        if (isReturn(val)) return val;
+                        if (isSpecial(val)) {
+                            switch (val) {
+                                case VReturn(_):
+                                    return val;
+                                case VBreak:
+                                    break;
+                                case VContinue:
+                                    trace("test");
+                                    continue;
+                                    //don't do anything here, as we will continue anyway
+                            }
+                        }
                     }
                 }
                 else {
                     do {
                         var val = eval(body);
-                        if (isReturn(val)) return val;
+                        if (isSpecial(val)) {
+                            switch (val) {
+                                case VReturn(_):
+                                    return val;
+                                case VBreak:
+                                    break;
+                                case VContinue:
+                                    continue;
+                                    //don't do anything here, as we will continue anyway
+                            }
+                        }
                     } while(eval(cond));
                 }
                 null;
@@ -196,6 +224,6 @@ class Interpreter
 **/
 enum SpecialValue {
     VReturn(?value : Dynamic);
-    // VBreak;
-    // VContinue;
+    VBreak;
+    VContinue;
 }
