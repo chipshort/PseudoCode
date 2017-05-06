@@ -81,6 +81,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 							case [Kwd(KwdElse), elseBody = parseStatementList(isFi), Kwd(KwdFi)]: //was an else
 								EIf(cond, EBlock(body), EBlock(elseBody));
 						}
+					case _:
+						unexpected();
 				}
 			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
 				var id = null;
@@ -107,8 +109,9 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 						EReturn();
 					case [value = parseExpr(), Semicolon]:
 						EReturn(value);
+					case _:
+						unexpected();
 				}
-				
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
 			}
@@ -143,11 +146,11 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		return switch (op) {
 			case OpMult | OpDiv | OpMod: {p: 12, left: true};
 			case OpAdd | OpSub : {p: 11, left: true};
-			case OpShl | OpShr | OpUShr : {p: 10, left: true};
+			// case OpShl | OpShr | OpUShr : {p: 10, left: true};
 			case OpGt | OpLt | OpGte | OpLte: {p: 9, left: true};
 			case OpEq | OpNotEq: {p: 8, left: true};
 			case OpAnd: {p: 7, left: true};
-			case OpXor: {p: 6, left: true};
+			// case OpXor: {p: 6, left: true};
 			case OpOr : {p: 5, left: true};
 			case OpBoolAnd : {p: 4, left: true};
 			case OpBoolOr : {p: 3, left: true};

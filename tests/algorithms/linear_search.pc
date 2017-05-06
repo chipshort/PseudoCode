@@ -2,6 +2,8 @@
     "code": "i <- 1;
     while i ≤ n ∧ A[i] ≠ x do
         i <- i + 1;
-    od",
-    "expected": "(i OpAssign 1); while ((i OpLte n) OpBoolAnd (A[i] OpNotEq x)) { (i OpAssign (i OpAdd 1)); };"
+    od
+    if i > n then i <- 0; fi
+    ",
+    "expected": "(i OpAssign 1); while ((i OpLte n) OpBoolAnd (A[i] OpNotEq x)) { (i OpAssign (i OpAdd 1)); }; if (i OpGt n) { (i OpAssign 0); };"
 }

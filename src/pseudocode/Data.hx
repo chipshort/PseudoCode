@@ -208,7 +208,7 @@ enum Binop {
 	/**
 		`⊕`
 	**/
-	OpXor;
+	// OpXor;
 
 	/**
 		`∧`
@@ -223,17 +223,17 @@ enum Binop {
 	/**
 		`<<`
 	**/
-	OpShl;
+	// OpShl;
 
 	/**
 		`>>`
 	**/
-	OpShr;
+	// OpShr;
 
 	/**
 		`>>>`
 	**/
-	OpUShr;
+	// OpUShr;
 
 	/**
 		`%`
