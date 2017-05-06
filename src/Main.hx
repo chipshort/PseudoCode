@@ -2,6 +2,35 @@ class Main
 {
     static function main() : Void
     {
+        var interp = new pseudocode.Interpreter();
+        trace(interp.execute("i <- 3 % 2 + 2; return i;"));
+
+        var interp = new pseudocode.Interpreter();
+        trace(interp.execute("A[1..2]; A[1] <- 3; return A[1];"));
+
+        var interp = new pseudocode.Interpreter();
+        trace(interp.execute("if w2 then return 1; else return 0; fi"));
+
+        var interp = new pseudocode.Interpreter();
+        trace(interp.execute("
+        x <- 6;
+        n <- 5;
+        A[1..n];
+        A[1] <- 1;
+        A[2] <- 2;
+        A[3] <- 3;
+        A[4] <- 4;
+        A[5] <- 5;
+
+        i <- 1;
+        while i ≤ n ∧ A[i] ≠ x do
+            i <- i + 1;
+        od
+        if i > n then i <- 0; fi
+
+        return i;
+    "));
+
         runTests("tests");
     }
 
