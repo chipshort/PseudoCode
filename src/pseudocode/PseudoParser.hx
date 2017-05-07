@@ -135,9 +135,6 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				}
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
-			case _:
-				trace(peek(0));
-				unexpected();
 			}
 	}
 
