@@ -22,6 +22,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseExpr() : Expr
 	{
 		return switch stream {
+			case [Unop(op), expr = parseExpr()]:
+				EUnop(op, false, expr);
 			case [FloorOpen, expr = parseExpr(), FloorClose]:
 				parseNext(EFloor(expr));
 			case [POpen, expr = parseExpr(), PClose]:
@@ -98,7 +100,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case _:
 						unexpected();
 				}
-			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), a = canBreak.push(true), body = parseStatementList(isOd)]:
+			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), _ = canBreak.push(true), body = parseStatementList(isOd)]:
 				canBreak.pop();
 				var id = null;
 				var begin = null;
@@ -110,9 +112,9 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 						unexpected();
 				}
 				EFor(id, begin, end, EBlock(body), to == KwdTo);
-			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), a = canBreak.push(true), body = parseStatementList(isOd), b = canBreak.pop(), Kwd(KwdOd)]:
+			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), _ = canBreak.push(true), body = parseStatementList(isOd), _ = canBreak.pop(), Kwd(KwdOd)]:
 				EWhile(cond, EBlock(body), true);
-			case [Kwd(KwdRepeat), a = canBreak.push(true), body = parseStatementList(isUntil), b = canBreak.pop(), Kwd(KwdUntil), until = parseExpr()]:
+			case [Kwd(KwdRepeat), _ = canBreak.push(true), body = parseStatementList(isUntil), _ = canBreak.pop(), Kwd(KwdUntil), until = parseExpr()]:
 				var cond = EUnop(OpNot, false, until);
 				EWhile(EBlock(body), cond, false);
 			case [CommentLine(_)]:
@@ -134,6 +136,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseNext(expr : Expr) : Expr
 	{
 		return switch stream {
+			case [Unop(op)]:
+				EUnop(op, true, expr);
 			case [Binop(op), next = parseExpr()]: //binary operators
 				//I'm pretty sure OpAssign and OpAssignOp should not be expressions, but statements.
 				makeBinop(op, expr, next);

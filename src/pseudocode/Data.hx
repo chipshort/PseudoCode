@@ -268,7 +268,6 @@ enum Keyword {
 	KwdFunc; //TODO: implement functions
 	KwdCnuf;
 
-	
 	KwdIf;
 	KwdThen;
 	KwdElse;

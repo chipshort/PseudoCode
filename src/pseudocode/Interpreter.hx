@@ -18,7 +18,7 @@ class Interpreter
         var input = byte.ByteData.ofString(code);
         var parser = new pseudocode.PseudoParser(input, null);
         var parsed = parser.parseCode();
-
+        trace(pseudocode.PseudoParser.toString(parsed));
         var result = eval(parsed);
         
         if (isSpecial(result)) {
@@ -200,6 +200,15 @@ class Interpreter
             case EParenthesis(expr):
                 eval(expr);
             case EUnop(op, post, expr):
+                // switch (op) {
+                //     case OpDecrement:
+                //         if (post)
+                //             (eval(expr) : DynamicBox).value--;
+                //         else
+                //             ++eval(expr);
+                //     case _:
+                //         null;
+                // }
                 null; //TODO: implement unop
         }
 
@@ -214,6 +223,37 @@ class Interpreter
     static inline function isSpecial(v : Dynamic) : Bool
     {
         return v != null && Std.is(v, SpecialValue);
+    }
+}
+
+class DynamicBox
+{
+    //TODO: this concept is flawed, because a variable could be decremented / incremented multiple times
+    public var value : Dynamic;
+
+    public function new(v : Dynamic)
+        value = v;
+    
+    public function postDecrement() {
+        var v = value;
+        --value;
+        return new DynamicBox(v);
+    }
+
+    public function postIncrement() {
+        var v = value;
+        ++value;
+        return new DynamicBox(v);
+    }
+
+    public function preIncrement() {
+        ++value;
+        return this;
+    }
+
+    public function preDecrement() {
+        ++value;
+        return this;
     }
 }
 

@@ -46,8 +46,6 @@ class Main
         
         l <- 1; r <- 1;
         while l ≤ r do
-            l++;
-            continue;
             m <- ⌊(l + r) / 2⌋;
             if A[m] = x then
                 return m;
@@ -58,6 +56,7 @@ class Main
                 r <- m + 1;
             fi
         od
+        if then a //TODO: this should fail at parse time
         return 0;
         ")); //1
 
