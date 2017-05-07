@@ -18,7 +18,6 @@ class Interpreter
         var input = byte.ByteData.ofString(code);
         var parser = new pseudocode.PseudoParser(input, null);
         var parsed = parser.parseCode();
-        trace(pseudocode.PseudoParser.toString(parsed));
         var result = eval(parsed);
         
         if (isSpecial(result)) {
@@ -53,7 +52,6 @@ class Interpreter
                             memory[name] = new PArray(eval(start), eval(end));
                         }
                         else {
-                            trace(expr);
                             throw "Interval access for arrays is not implemented (yet?)";
                         }
                         null;
@@ -143,7 +141,6 @@ class Interpreter
                             case VBreak:
                                 break;
                             case VContinue:
-                                continue;
                                 //don't do anything here, as we will continue anyway
                         }
                     }
@@ -163,8 +160,6 @@ class Interpreter
                                 case VBreak:
                                     break;
                                 case VContinue:
-                                    trace("test");
-                                    continue;
                                     //don't do anything here, as we will continue anyway
                             }
                         }
@@ -180,7 +175,6 @@ class Interpreter
                                 case VBreak:
                                     break;
                                 case VContinue:
-                                    continue;
                                     //don't do anything here, as we will continue anyway
                             }
                         }

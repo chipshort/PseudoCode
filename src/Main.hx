@@ -89,7 +89,11 @@ class Main
                     token = lexer.token(pseudocode.PseudoLexer.tok);
                 }
                 Sys.println("--- could not be parsed: ---");
+                #if neko
                 neko.Lib.rethrow(e);
+                #else
+                throw e;
+                #end
             }
             
             var result = pseudocode.PseudoParser.toString(expr);

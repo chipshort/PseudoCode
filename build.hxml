@@ -3,4 +3,4 @@
 
 -debug
 -main Main
--neko main.n
+-cpp bin
