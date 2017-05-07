@@ -41,9 +41,11 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		while (!stop(peek(0))) {
 			switch stream {
 				case [statement = parseStatement()]:
-					list.push(statement);
+					if (statement != null)
+						list.push(statement);
 				case _:
-					return list;
+					unexpected();
+					// return list;
 			}
 		}
 
@@ -84,7 +86,7 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case _:
 						unexpected();
 				}
-			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd)]:
+			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
 				var id = null;
 				var begin = null;
 				switch (decl) {
@@ -98,11 +100,11 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				EFor(id, begin, end, EBlock(body), to == KwdTo);
 			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
 				EWhile(cond, EBlock(body), true);
-			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseExpr()]:
+			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseStatement()]:
 				var cond = EUnop(OpNot, false, until);
 				EWhile(EBlock(body), cond, false);
 			case [CommentLine(_)]:
-				parseStatement();
+				parseOptional(parseStatement);
 			case [Kwd(KwdReturn)]:
 				switch stream {
 					case [Semicolon]:
@@ -114,6 +116,9 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				}
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
+			// case _:
+			// 	unexpected();
+			// 	null;
 			}
 	}
 
@@ -210,8 +215,10 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				'${toString(e1)}[${toString(e2)}]';
 			case EIf(cond, eif, eelse):
 				'if ${toString(cond)} ${toString(eif)}' + (eelse != null ? ' else ${toString(eelse)}' : '');
-			default:
-				"";
+			case EBreak:
+				"break";
+			case EContinue:
+				"continue";
 		}
 	}
 

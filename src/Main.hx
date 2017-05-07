@@ -31,6 +31,11 @@ class Main
         return i;
         ")); //0
 
+        var interp = new pseudocode.Interpreter();
+        trace(interp.execute("
+        if a < b then fi
+        ")); //should fail
+
         runTests("tests");
     }
 
