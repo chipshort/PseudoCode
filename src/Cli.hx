@@ -1,69 +1,41 @@
-class Main
+class Cli
 {
     static function main() : Void
     {
-        var interp = new pseudocode.Interpreter();
-        trace(interp.execute("i <- 3 % 2 + 2; return i;")); // 3
+        var args = Sys.args();
 
-        var interp = new pseudocode.Interpreter();
-        trace(interp.execute("A[1..2]; A[1] <- 3; return A[1];")); // 3
+        if (args.length == 0) {
+            var path = #if neko
+                "neko pseudocode.n"
+            #elseif cpp
+                "pseudocode"
+            #elseif python
+                "python pseudocode.py"
+            #elseif lua
+                "lua pseudocode.lua"
+            #elseif cs
+                "pseudocode"
+            #elseif java
+                "java -jar pseudocode.jar"
+            #else
+                ""
+            #end;
+            Sys.println('Usage: $path <FILE>\n       $path --tests to run tests');
 
-        var interp = new pseudocode.Interpreter();
-        trace(interp.execute("if w2 then return 1; else return 0; fi")); // 0
+            return;
+        }
 
-        var interp = new pseudocode.Interpreter();
-        //linear search
-        trace(interp.execute("
-        x <- 6;
-        n <- 5;
-        A[1..n];
-        A[1] <- 1;
-        A[2] <- 2;
-        A[3] <- 3;
-        A[4] <- 4;
-        A[5] <- 5;
-
-        i <- 1;
-        while i ≤ n ∧ A[i] ≠ x do
-            i <- i + 1;
-        od
-        if i > n then i <- 0; fi
-
-        return i;
-        ")); //0
-
-        //binarysearch
-        var interp = new pseudocode.Interpreter();
-        trace(interp.execute("
-        x <- 1;
-        n <- 5;
-        A[1..n];
-        A[1] <- 1;
-        A[2] <- 2;
-        A[3] <- 3;
-        A[4] <- 4;
-        A[5] <- 5;
-        
-        l <- 1; r <- 1;
-        while l ≤ r do
-            m <- ⌊(l + r) / 2⌋;
-            if A[m] = x then
-                return m;
-            fi
-            if x > A[m] then
-                l <- m + 1;
-            else
-                r <- m + 1;
-            fi
-        od
-        return 0;
-        ")); //1
-
-        runTests("tests");
+        if (args[0] == "--tests")        
+            runTests("tests");
+        else {
+            var interpreter = new pseudocode.Interpreter();
+            Sys.println("Output: " + interpreter.execute(sys.io.File.getContent(args[0])));
+        }
     }
 
     static function runTests(folder : String) : Void
     {
+        Sys.println('==== Running parser tests ====');
         var testCases = readTests(folder);
         var failCounter = 0;
 
@@ -129,6 +101,65 @@ class Main
             Sys.println('$failCounter of ${testCases.length} tests failed ✗');
         else
             Sys.println('All ${testCases.length} tests succeeded ✓');
+
+        //FIXME: add interpreter tests
+
+        // var interp = new pseudocode.Interpreter();
+        // trace(interp.execute("i <- 3 % 2 + 2; return i;")); // 3
+
+        // var interp = new pseudocode.Interpreter();
+        // trace(interp.execute("A[1..2]; A[1] <- 3; return A[1];")); // 3
+
+        // var interp = new pseudocode.Interpreter();
+        // trace(interp.execute("if w2 then return 1; else return 0; fi")); // 0
+
+        // var interp = new pseudocode.Interpreter();
+        // //linear search
+        // trace(interp.execute("
+        // x <- 6;
+        // n <- 5;
+        // A[1..n];
+        // A[1] <- 1;
+        // A[2] <- 2;
+        // A[3] <- 3;
+        // A[4] <- 4;
+        // A[5] <- 5;
+
+        // i <- 1;
+        // while i ≤ n ∧ A[i] ≠ x do
+        //     i <- i + 1;
+        // od
+        // if i > n then i <- 0; fi
+
+        // return i;
+        // ")); //0
+
+        // //binarysearch
+        // var interp = new pseudocode.Interpreter();
+        // trace(interp.execute("
+        // x <- 1;
+        // n <- 5;
+        // A[1..n];
+        // A[1] <- 1;
+        // A[2] <- 2;
+        // A[3] <- 3;
+        // A[4] <- 4;
+        // A[5] <- 5;
+        
+        // l <- 1; r <- n;
+        // while l ≤ r do
+        //     m <- ⌊(l + r) / 2⌋;
+        //     if A[m] = x then
+        //         return m;
+        //     fi
+        //     if x > A[m] then
+        //         l <- m + 1;
+        //     else
+        //         r <- m + 1;
+        //     fi
+        // od
+        // return 0;
+        // ")); //1
     }
 
     static function readTests(folder : String) : Array<Test>

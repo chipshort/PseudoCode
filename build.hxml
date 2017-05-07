@@ -2,5 +2,5 @@
 -lib hxparse
 
 -debug
--main Main
+-main Cli
 -cpp bin

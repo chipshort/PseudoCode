@@ -1,0 +1,22 @@
+x <- 3;
+n <- 5;
+A[1..n];
+A[1] <- 1;
+A[2] <- 2;
+A[3] <- 3;
+A[4] <- 4;
+A[5] <- 5;
+
+l <- 1; r <- n;
+while l ≤ r do
+    m <- ⌊(l + r) / 2⌋;
+    if A[m] = x then
+         return m;
+    fi
+    if x > A[m] then
+        l <- m + 1;
+    else
+        r <- m + 1;
+    fi
+od
+return 0;
