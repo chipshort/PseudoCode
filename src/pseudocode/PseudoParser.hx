@@ -1,13 +1,19 @@
 package pseudocode;
 
+import hxparse.Unexpected;
+import hxparse.LexerTokenSource;
+import hxparse.Parser;
+import hxparse.ParserBuilder;
 import pseudocode.PseudoLexer;
 import pseudocode.Data;
 
-class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements hxparse.ParserBuilder
+class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements ParserBuilder
 {
+	var canBreak = new Array<Bool>();
+
     public function new(input:byte.ByteData, sourceName:String) {
 		var lexer = new PseudoLexer(input, sourceName);
-		var ts = new PseudoTokenSource(lexer);
+		var ts = new LexerTokenSource(lexer, PseudoLexer.tok);
 		super(ts);
     }
 
@@ -19,6 +25,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 	function parseExpr() : Expr
 	{
 		return switch stream {
+			case [Unop(op), expr = parseExpr()]:
+				EUnop(op, false, expr);
 			case [FloorOpen, expr = parseExpr(), FloorClose]:
 				parseNext(EFloor(expr));
 			case [POpen, expr = parseExpr(), PClose]:
@@ -72,8 +80,19 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 
 	function parseStatement() : Expr
 	{
+		//TODO: implement break and continue and make sure they can only exist in while or for blocks
 		return switch stream {
 			//TODO: make OpAssign and OpAssignOp statements
+			case [Kwd(KwdContinue), Semicolon]:
+				if (canBreak.length == 0)
+					throw new Unexpected(Kwd(KwdContinue), stream.curPos());
+				
+				EContinue;
+			case [Kwd(KwdBreak), Semicolon]:
+				if (canBreak.length == 0)
+					throw new Unexpected(Kwd(KwdBreak), stream.curPos());
+				
+				EBreak;
 			case [Kwd(KwdIf), cond = parseExpr(), Kwd(KwdThen)]: //read if statement until then
 				switch stream {
 					case [body = parseStatementList(isFiOrElse)]: //found a fi or an else
@@ -86,7 +105,8 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case _:
 						unexpected();
 				}
-			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
+			case [Kwd(KwdFor), decl = parseExpr(), Kwd(to = KwdTo | KwdDownto), end = parseExpr(), Kwd(KwdDo), _ = canBreak.push(true), body = parseStatementList(isOd), Kwd(KwdOd)]:
+				canBreak.pop();
 				var id = null;
 				var begin = null;
 				switch (decl) {
@@ -96,11 +116,10 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 					case _:
 						unexpected();
 				}
-
 				EFor(id, begin, end, EBlock(body), to == KwdTo);
-			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), body = parseStatementList(isOd), Kwd(KwdOd)]:
+			case [Kwd(KwdWhile), cond = parseExpr(), Kwd(KwdDo), _ = canBreak.push(true), body = parseStatementList(isOd), _ = canBreak.pop(), Kwd(KwdOd)]:
 				EWhile(cond, EBlock(body), true);
-			case [Kwd(KwdRepeat), body = parseStatementList(isUntil), Kwd(KwdUntil), until = parseStatement()]:
+			case [Kwd(KwdRepeat), _ = canBreak.push(true), body = parseStatementList(isUntil), _ = canBreak.pop(), Kwd(KwdUntil), until = parseStatement()]:
 				var cond = EUnop(OpNot, false, until);
 				EWhile(EBlock(body), cond, false);
 			case [CommentLine(_)]:
@@ -116,15 +135,17 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 				}
 			case [expr = parseExpr(), Semicolon] if (expr != null): //expressions become statements when a semicolon is attached
 				expr;
-			// case _:
-			// 	unexpected();
-			// 	null;
+			case _:
+				trace(peek(0));
+				unexpected();
 			}
 	}
 
 	function parseNext(expr : Expr) : Expr
 	{
 		return switch stream {
+			case [Unop(op)]:
+				EUnop(op, true, expr);
 			case [Binop(op), next = parseExpr()]: //binary operators
 				//I'm pretty sure OpAssign and OpAssignOp should not be expressions, but statements.
 				makeBinop(op, expr, next);
@@ -227,24 +248,5 @@ class PseudoParser extends hxparse.Parser<PseudoTokenSource, Token> implements h
 		var prec1 = operatorPrecedence(op1);
 		var prec2 = operatorPrecedence(op2);
 		return prec1.left && prec1.p >= prec2.p;
-	}
-}
-
-
-class PseudoTokenSource {
-	var lexer:PseudoLexer;
-	var rawSource:hxparse.LexerTokenSource<Token>;
-
-	public function new(lexer : PseudoLexer) {
-		this.lexer = lexer;
-		this.rawSource = new hxparse.LexerTokenSource(lexer,PseudoLexer.tok);
-	}
-
-	public function token() : Token {
-		return lexer.token(PseudoLexer.tok);
-	}
-
-	public function curPos() : hxparse.Position {
-		return lexer.curPos();
 	}
 }

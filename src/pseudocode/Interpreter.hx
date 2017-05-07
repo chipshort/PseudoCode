@@ -18,7 +18,7 @@ class Interpreter
         var input = byte.ByteData.ofString(code);
         var parser = new pseudocode.PseudoParser(input, null);
         var parsed = parser.parseCode();
-
+        trace(pseudocode.PseudoParser.toString(parsed));
         var result = eval(parsed);
         
         if (isSpecial(result)) {
@@ -121,17 +121,14 @@ class Interpreter
                 }
             case EReturn(value):
                 if (value == null)
-                    null;
+                    VReturn(null);
                 else
                     VReturn(eval(value));
             case EBreak:
-                //TODO: implement break
-                null;
+                VBreak;
             case EContinue:
-                //TODO: implement continue
-                null;
+                VContinue;
             case EFloor(expr):
-                //TODO: implement floor
                 Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
                 var realId = eval(id);
@@ -139,7 +136,17 @@ class Interpreter
                 var realEnd = eval(end);
                 while (i <= realEnd) {
                     var val = eval(body);
-                    if (isReturn(val)) return val;
+                    if (isSpecial(val)) {
+                        switch (val) {
+                            case VReturn(_):
+                                return val;
+                            case VBreak:
+                                break;
+                            case VContinue:
+                                continue;
+                                //don't do anything here, as we will continue anyway
+                        }
+                    }
 
                     ++i;
                     ++memory[realId];
@@ -149,13 +156,34 @@ class Interpreter
                 if (normal) {
                     while(eval(cond)) {
                         var val = eval(body);
-                        if (isReturn(val)) return val;
+                        if (isSpecial(val)) {
+                            switch (val) {
+                                case VReturn(_):
+                                    return val;
+                                case VBreak:
+                                    break;
+                                case VContinue:
+                                    trace("test");
+                                    continue;
+                                    //don't do anything here, as we will continue anyway
+                            }
+                        }
                     }
                 }
                 else {
                     do {
                         var val = eval(body);
-                        if (isReturn(val)) return val;
+                        if (isSpecial(val)) {
+                            switch (val) {
+                                case VReturn(_):
+                                    return val;
+                                case VBreak:
+                                    break;
+                                case VContinue:
+                                    continue;
+                                    //don't do anything here, as we will continue anyway
+                            }
+                        }
                     } while(eval(cond));
                 }
                 null;
@@ -172,6 +200,15 @@ class Interpreter
             case EParenthesis(expr):
                 eval(expr);
             case EUnop(op, post, expr):
+                // switch (op) {
+                //     case OpDecrement:
+                //         if (post)
+                //             (eval(expr) : DynamicBox).value--;
+                //         else
+                //             ++eval(expr);
+                //     case _:
+                //         null;
+                // }
                 null; //TODO: implement unop
         }
 
@@ -189,6 +226,37 @@ class Interpreter
     }
 }
 
+class DynamicBox
+{
+    //TODO: this concept is flawed, because a variable could be decremented / incremented multiple times
+    public var value : Dynamic;
+
+    public function new(v : Dynamic)
+        value = v;
+    
+    public function postDecrement() {
+        var v = value;
+        --value;
+        return new DynamicBox(v);
+    }
+
+    public function postIncrement() {
+        var v = value;
+        ++value;
+        return new DynamicBox(v);
+    }
+
+    public function preIncrement() {
+        ++value;
+        return this;
+    }
+
+    public function preDecrement() {
+        ++value;
+        return this;
+    }
+}
+
 /**
     Special return values.
     These are used to pass information up the recursion tree of the eval function.
@@ -196,6 +264,6 @@ class Interpreter
 **/
 enum SpecialValue {
     VReturn(?value : Dynamic);
-    // VBreak;
-    // VContinue;
+    VBreak;
+    VContinue;
 }

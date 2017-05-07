@@ -12,6 +12,7 @@ class Main
         trace(interp.execute("if w2 then return 1; else return 0; fi")); // 0
 
         var interp = new pseudocode.Interpreter();
+        //linear search
         trace(interp.execute("
         x <- 6;
         n <- 5;
@@ -31,10 +32,32 @@ class Main
         return i;
         ")); //0
 
+        //binarysearch
         var interp = new pseudocode.Interpreter();
         trace(interp.execute("
-        if a < b then fi
-        ")); //should fail
+        x <- 1;
+        n <- 5;
+        A[1..n];
+        A[1] <- 1;
+        A[2] <- 2;
+        A[3] <- 3;
+        A[4] <- 4;
+        A[5] <- 5;
+        
+        l <- 1; r <- 1;
+        while l ≤ r do
+            m <- ⌊(l + r) / 2⌋;
+            if A[m] = x then
+                return m;
+            fi
+            if x > A[m] then
+                l <- m + 1;
+            else
+                r <- m + 1;
+            fi
+        od
+        return 0;
+        ")); //1
 
         runTests("tests");
     }

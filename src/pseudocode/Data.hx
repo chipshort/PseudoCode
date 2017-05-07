@@ -70,12 +70,12 @@ enum Expr {
 	/**
 		A `break` expression.
 	**/
-	EBreak; //TODO: implement break;
+	EBreak;
 
 	/**
 		A `continue` expression.
 	**/
-	EContinue;//TODO: implement continue;
+	EContinue;
 }
 
 /**
@@ -264,10 +264,10 @@ enum Binop {
 
 //Lexer
 enum Keyword {
+	//TODO: add something like trace
 	KwdFunc; //TODO: implement functions
 	KwdCnuf;
 
-	
 	KwdIf;
 	KwdThen;
 	KwdElse;
@@ -279,8 +279,8 @@ enum Keyword {
 	KwdOd;
 	KwdTo;
 	KwdDownto;
-	KwdBreak; //TODO: break
-	KwdContinue; //TODO: continue
+	KwdBreak;
+	KwdContinue;
 	KwdRepeat;
 	KwdUntil;
 
@@ -302,7 +302,7 @@ enum Token {
 	Comma; //TODO: use comma token?
 	BkOpen;
 	BkClose;
-	//TODO: implement gauss brackets
+
 	FloorOpen; //⌊
 	FloorClose; //⌋
 	//TODO: maybe ceil too?
