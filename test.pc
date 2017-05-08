@@ -7,9 +7,14 @@ A[3] <- 3;
 A[4] <- 4;
 A[5] <- 5;
 
+y <- 2;
+while y < 0 do
+    y--;
+od
+
 l <- 1; r <- n;
-while l ≤ r do
-    m <- ⌊(l + r) / 2⌋;
+while l $\leq$ r do
+    m <- $\lfloor$ (l + r) / 2 $\rfloor$;
     if A[m] = x then
          return m;
     fi

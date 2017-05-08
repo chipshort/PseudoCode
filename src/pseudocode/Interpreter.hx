@@ -196,16 +196,58 @@ class Interpreter
             case EParenthesis(expr):
                 eval(expr);
             case EUnop(op, post, expr):
-                // switch (op) {
-                //     case OpDecrement:
-                //         if (post)
-                //             (eval(expr) : DynamicBox).value--;
-                //         else
-                //             ++eval(expr);
-                //     case _:
-                //         null;
-                // }
-                null; //TODO: implement unop
+                switch (op) {
+                    case OpDecrement:
+                        var current = 0;
+                        switch (expr) {
+                            case EConst(CIdent(name)):
+                                if (post)
+                                    memory[name]--;
+                                else
+                                    --memory[name];
+                            case EField(e1, field):
+                                var obj = eval(e1);
+                                current = Reflect.getProperty(obj, field);
+                                if (post) {
+                                    Reflect.setProperty(obj, field, current - 1);
+                                    current;
+                                }
+                                else {
+                                    Reflect.setProperty(obj, field, current - 1);
+                                    current - 1;
+                                }
+                            case _:
+                                throw "Cannot decrement " + expr;
+                        }
+                    case OpIncrement:
+                        var current = 0;
+                        switch (expr) {
+                            case EConst(CIdent(name)):
+                                if (post)
+                                    memory[name]++;
+                                else
+                                    ++memory[name];
+                            case EField(e1, field):
+                                var obj = eval(e1);
+                                current = Reflect.getProperty(obj, field);
+                                if (post) {
+                                    Reflect.setProperty(obj, field, current + 1);
+                                    current;
+                                }
+                                else {
+                                    Reflect.setProperty(obj, field, current + 1);
+                                    current + 1;
+                                }
+                            case _:
+                                throw "Cannot increment " + expr;
+                        }
+                    case OpNeg:
+                        -eval(expr);
+                    case OpNot:
+                        !eval(expr);
+                    case OpNegBits:
+                        ~eval(expr);
+                }
         }
 
         return result;
@@ -219,37 +261,6 @@ class Interpreter
     static inline function isSpecial(v : Dynamic) : Bool
     {
         return v != null && Std.is(v, SpecialValue);
-    }
-}
-
-class DynamicBox
-{
-    //TODO: this concept is flawed, because a variable could be decremented / incremented multiple times
-    public var value : Dynamic;
-
-    public function new(v : Dynamic)
-        value = v;
-    
-    public function postDecrement() {
-        var v = value;
-        --value;
-        return new DynamicBox(v);
-    }
-
-    public function postIncrement() {
-        var v = value;
-        ++value;
-        return new DynamicBox(v);
-    }
-
-    public function preIncrement() {
-        ++value;
-        return this;
-    }
-
-    public function preDecrement() {
-        ++value;
-        return this;
     }
 }
 

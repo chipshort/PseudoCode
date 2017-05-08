@@ -26,7 +26,17 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 	{
 		return switch stream {
 			case [Unop(op), expr = parseExpr()]:
-				EUnop(op, false, expr);
+				if (op == OpIncrement || op == OpDecrement) {
+					switch (expr) {
+						case EConst(CIdent(_)) | EField(_, _): //increment and decrement only allowed on field or identifier
+							EUnop(op, false, expr);
+						case _:
+							throw "Cannot increment / decrement " + expr;
+					}
+				}
+				else {
+					EUnop(op, false, expr);
+				}
 			case [FloorOpen, expr = parseExpr(), FloorClose]:
 				parseNext(EFloor(expr));
 			case [POpen, expr = parseExpr(), PClose]:
@@ -149,7 +159,17 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 						unexpected();
 				}
 			case [Unop(op)]:
-				EUnop(op, true, expr);
+				if (op == OpIncrement || op == OpDecrement) {
+					switch (expr) {
+						case EConst(CIdent(_)) | EField(_, _): //increment and decrement only allowed on field or identifier
+							EUnop(op, true, expr);
+						case _:
+							throw "Cannot increment / decrement " + expr;
+					}
+				}
+				else {
+					EUnop(op, true, expr);
+				}
 			case [Binop(op), next = parseExpr()]: //binary operators
 				//I'm pretty sure OpAssign and OpAssignOp should not be expressions, but statements.
 				makeBinop(op, expr, next);

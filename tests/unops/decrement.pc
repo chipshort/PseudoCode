@@ -1,0 +1,4 @@
+{
+    "code": "a <- 1; a--; --a;",
+    "expected": "(a OpAssign 1); (a OpDecrement); (OpDecrement a);"
+}
