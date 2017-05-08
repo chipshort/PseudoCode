@@ -1,7 +1,7 @@
 {
     "code": "l <- 1; r <- n;
     while l $\\lte$ r do
-        m <- ⌊(l + r) / 2⌋;
+        m <- $\\lfloor$ (l + r) / 2 $\\rfloor$;
         if A[m] = x then
             return m;
         fi
