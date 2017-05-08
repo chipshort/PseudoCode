@@ -141,6 +141,13 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 	function parseNext(expr : Expr) : Expr
 	{
 		return switch stream {
+			case [Dot]:
+				switch stream {
+					case [Const(CIdent(f))]:
+						parseNext(EField(expr, f));
+					case _:
+						unexpected();
+				}
 			case [Unop(op)]:
 				EUnop(op, true, expr);
 			case [Binop(op), next = parseExpr()]: //binary operators
@@ -201,6 +208,8 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				str.push("}");
 				
 				str.join(" ");
+			case EField(e, field):
+				'${toString(e)}.$field';
 			case EFloor(e):
 				'FLOOR($e)';
 			case EReturn(e):

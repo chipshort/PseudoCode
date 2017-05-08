@@ -68,6 +68,8 @@ class Interpreter
                     case CInt(i):
                         Std.parseInt(i);
                 }
+            case EField(e1, field):
+                Reflect.getProperty(eval(e1), field);
             case EBinop(op, e1, e2):
                 switch (op) {
                     case OpAdd:

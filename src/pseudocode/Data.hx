@@ -12,6 +12,8 @@ enum Expr {
 	**/
 	EArray( e1 : Expr, e2 : Expr );
 
+	EField(e1 : Expr, field : String);
+
 	/**
 		Binary operator `e1 op e2`.
 	**/

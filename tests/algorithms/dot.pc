@@ -1,0 +1,4 @@
+{
+    "code": "A[1..3]; n <- A.length;",
+    "expected": "A[1..3]; (n OpAssign A.length);"
+}
