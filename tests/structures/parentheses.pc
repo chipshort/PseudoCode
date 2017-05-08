@@ -1,4 +1,4 @@
 {
-    "code": "(a < b) ∧ (b ≥ 3 ∨ c = 2);",
+    "code": "(a < b) $\\land$ (b $\\gte$ 3 $\\lor$ c = 2);",
     "expected": "(((a OpLt b)) OpBoolAnd (((b OpGte 3) OpBoolOr (c OpEq 2))));"
 }

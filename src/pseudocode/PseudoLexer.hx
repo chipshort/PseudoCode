@@ -24,11 +24,11 @@ class PseudoLexer extends Lexer implements hxparse.RuleBuilder
 		"*=" => Binop(OpAssignOp(OpMult)),
 		"/=" => Binop(OpAssignOp(OpDiv)),
 		// "<<=" => Binop(OpAssignOp(OpShl)),
-		"≠" => Binop(OpNotEq),
-		"≤" => Binop(OpLte),
-		"≥" => Binop(OpGte),
-		"∧" => Binop(OpBoolAnd), //unicode
-		"∨" => Binop(OpBoolOr), //this is unicode, not a simple "∨"
+		"\\$\\\\neq\\$" => Binop(OpNotEq),
+		"\\$\\\\lte\\$" => Binop(OpLte),
+		"\\$\\\\gte\\$" => Binop(OpGte),
+		"\\$\\\\land\\$" => Binop(OpBoolAnd), //unicode
+		"\\$\\\\lor\\$" => Binop(OpBoolOr), //this is unicode, not a simple "∨"
 		// "<<" => Binop(OpShl),
         "<-" => Binop(OpAssign),
         "\\.\\." => Binop(OpInterval), //used for arrays

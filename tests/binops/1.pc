@@ -1,4 +1,4 @@
 {
-    "code": "c <- a ≠ a + b ∧ a + b < b + b ∧ a < b;",
+    "code": "c <- a $\\neq$ a + b $\\land$ a + b < b + b $\\land$ a < b;",
     "expected": "(c OpAssign (((a OpNotEq (a OpAdd b)) OpBoolAnd ((a OpAdd b) OpLt (b OpAdd b))) OpBoolAnd (a OpLt b)));"
 }

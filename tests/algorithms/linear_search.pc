@@ -1,6 +1,6 @@
 {
     "code": "i <- 1;
-    while i ≤ n ∧ A[i] ≠ x do
+    while i $\\lte$ n $\\land$ A[i] $\\neq$ x do
         i <- i + 1;
     od
     if i > n then i <- 0; fi

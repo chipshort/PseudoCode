@@ -1,6 +1,6 @@
 {
     "code": "l <- 1; r <- n;
-    while l ≤ r do
+    while l $\\lte$ r do
         m <- ⌊(l + r) / 2⌋;
         if A[m] = x then
             return m;

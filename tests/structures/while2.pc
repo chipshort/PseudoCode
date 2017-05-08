@@ -1,4 +1,4 @@
 {
-    "code": "while A[i] ≠ 17 do i <- i + 1; od",
+    "code": "while A[i] $\\neq$ 17 do i <- i + 1; od",
     "expected": "while (A[i] OpNotEq 17) { (i OpAssign (i OpAdd 1)); };"
 }

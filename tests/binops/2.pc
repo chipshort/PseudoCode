@@ -1,4 +1,4 @@
 {
-    "code": "a ≠ a ∧ a + b < b + b ∧ a < b;",
+    "code": "a $\\neq$ a $\\land$ a + b < b + b $\\land$ a < b;",
     "expected": "(((a OpNotEq a) OpBoolAnd ((a OpAdd b) OpLt (b OpAdd b))) OpBoolAnd (a OpLt b));"
 }
