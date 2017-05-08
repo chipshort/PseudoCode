@@ -1,6 +1,6 @@
 -cp src
 -lib hxparse
 
--debug
 -main Cli
 -cpp bin
+-cmd mv bin/Cli bin/pseudocode
