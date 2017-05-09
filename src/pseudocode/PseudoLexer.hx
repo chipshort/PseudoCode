@@ -36,6 +36,7 @@ class PseudoLexer extends Lexer implements hxparse.RuleBuilder
 		"<" => Binop(OpLt),
 		">" => Binop(OpGt),
         ";" => Semicolon,
+		"," => Comma,
         "%" => Binop(OpMod),
 		"&" => Binop(OpAnd),
 		"|" => Binop(OpOr),

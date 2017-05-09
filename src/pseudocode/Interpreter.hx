@@ -6,10 +6,11 @@ import pseudocode.runtime.PseudoArray;
 class Interpreter
 {
     /** Contains all variables and their values **/
-    public var memory = new Map<String, Dynamic>();
+    public var stack = new util.Stack<Map<String, Dynamic>>();
 
     public function new()
     {
+        stack.push(new Map<String, Dynamic>());
     }
 
     /** Execute `code` **/
@@ -31,6 +32,29 @@ class Interpreter
         return result;
     }
 
+    function get(field : String) : Dynamic
+    {
+        var map = stack.findFirst(function (map) {
+            return map.exists(field);
+        });
+
+        return map[field];
+    }
+
+    function set(field : String, value : Dynamic) : Void
+    {
+        var map = stack.findFirst(function (map) {
+            return map.exists(field);
+        });
+
+        map[field] = value;
+    }
+
+    function define(field : String, value : Dynamic) : Void
+    {
+        stack.peek()[field] = value;
+    }
+
     /**
         Internal function that takes an `expr`, evaluates it and returns the result.
         Some special return values are used. See SpecialValue for more information.
@@ -38,6 +62,15 @@ class Interpreter
     function eval(expr : Expr) : Dynamic
     {
         var result : Dynamic = switch (expr) {
+            case EFunc(name, args, body):
+                define(name, function (arguments : Array<Dynamic>) {
+                    stack.push(new Map<String, Dynamic>());
+                    //TODO: create stack
+                    eval(body);
+
+                    stack.pop();
+                });
+                null;
             case EBlock(exprs):
                 for (e in exprs) {
                     var value = eval(e);
@@ -48,12 +81,12 @@ class Interpreter
             case EArray(e1, e2):
                 switch [e1, e2] {
                     case [EConst(CIdent(name)), EBinop(OpInterval, start, end)]: //A[1..2]
-                        if (!memory.exists(name)) {//if name does not exist, this is a declaration
-                            memory[name] = new PArray(eval(start), eval(end));
-                        }
-                        else {
-                            throw "Interval access for arrays is not implemented (yet?)";
-                        }
+                        // if (!memory.exists(name)) {//if name does not exist, this is a declaration
+                            define(name, new PArray(eval(start), eval(end)));
+                        // }
+                        // else {
+                        //     throw "Interval access for arrays is not implemented (yet?)";
+                        // }
                         null;
                     case [_, _]: //Assume this is a normal array access, for example: A[2]
                         var array : PArray = eval(e1);
@@ -62,7 +95,7 @@ class Interpreter
             case EConst(const):
                 switch (const) {
                     case CIdent(name):
-                        memory[name];
+                        get(name);
                     case CFloat(f):
                         Std.parseFloat(f);
                     case CInt(i):
@@ -77,9 +110,9 @@ class Interpreter
                     case OpAssign:
                         switch (e1) {
                             case EConst(CIdent(name)): //A <- 2
-                                memory[name] = eval(e2);
+                                set(name, eval(e2));
                             case EArray(EConst(CIdent(name)), index): //A[1] <- 2
-                                var array : PArray = memory[name];
+                                var array : PArray = get(name);
                                 array[eval(index)] = eval(e2);
                             case _:
                                 throw 'Cannot assign to $e1';
@@ -131,14 +164,19 @@ class Interpreter
             case EFloor(expr):
                 Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
+                stack.push(new Map<String, Dynamic>());
+                trace(id);
                 var realId = eval(id);
-                var i = memory[realId] = eval(start);
+                var i = eval(start);
+                define(realId, i);
+                //var i = memory[realId] = eval(start);
                 var realEnd = eval(end);
                 while (i <= realEnd) {
                     var val = eval(body);
                     if (isSpecial(val)) {
                         switch (val) {
                             case VReturn(_):
+                                stack.pop();
                                 return val;
                             case VBreak:
                                 break;
@@ -147,17 +185,20 @@ class Interpreter
                         }
                     }
 
-                    ++i;
-                    ++memory[realId];
+                    i = get(realId) + 1;
+                    set(realId, i);
                 }
+                stack.pop();
                 null;
             case EWhile(cond, body, normal):
+                stack.push(new Map<String, Dynamic>());
                 if (normal) {
                     while(eval(cond)) {
                         var val = eval(body);
                         if (isSpecial(val)) {
                             switch (val) {
                                 case VReturn(_):
+                                    stack.pop();
                                     return val;
                                 case VBreak:
                                     break;
@@ -173,6 +214,7 @@ class Interpreter
                         if (isSpecial(val)) {
                             switch (val) {
                                 case VReturn(_):
+                                    stack.pop();
                                     return val;
                                 case VBreak:
                                     break;
@@ -182,6 +224,7 @@ class Interpreter
                         }
                     } while(eval(cond));
                 }
+                stack.pop();
                 null;
             case EIf(cond, body, elseBody):
                 if (eval(cond)) {
@@ -201,10 +244,13 @@ class Interpreter
                         var current = 0;
                         switch (expr) {
                             case EConst(CIdent(name)):
+                                var v = get(name);
+                                set(name, v - 1);
+
                                 if (post)
-                                    memory[name]--;
+                                    v;
                                 else
-                                    --memory[name];
+                                    v - 1;
                             case EField(e1, field):
                                 var obj = eval(e1);
                                 current = Reflect.getProperty(obj, field);
@@ -223,10 +269,13 @@ class Interpreter
                         var current = 0;
                         switch (expr) {
                             case EConst(CIdent(name)):
+                                var v = get(name);
+                                set(name, v + 1);
+
                                 if (post)
-                                    memory[name]++;
+                                    v;
                                 else
-                                    ++memory[name];
+                                    v + 1;
                             case EField(e1, field):
                                 var obj = eval(e1);
                                 current = Reflect.getProperty(obj, field);

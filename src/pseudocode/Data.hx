@@ -14,6 +14,8 @@ enum Expr {
 
 	EField(e1 : Expr, field : String);
 
+	EFunc(name : String, args : Array<String>, body : Expr);
+
 	/**
 		Binary operator `e1 op e2`.
 	**/

@@ -19,7 +19,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 
 	public function parseCode() : Expr
 	{
-		return EBlock(parseStatementList(isEof));
+		return EBlock(parseTopLevelList());
 	}
 
 	function parseExpr() : Expr
@@ -70,6 +70,26 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 		return list;
 	}
 
+	function parseTopLevelList()
+	{
+		var list = new Array<Expr>();
+
+		while (!isEof(peek(0))) {
+			switch stream {
+				case [declaration = parseDeclaration()]:
+					list.push(declaration);
+				case [statement = parseStatement()]:
+					if (statement != null)
+						list.push(statement);
+				case _:
+					unexpected();
+					// return list;
+			}
+		}
+
+		return list;
+	}
+
 	static function isFiOrElse(t : Token) : Bool
 		return t.match(Kwd(KwdFi) | Kwd(KwdElse));
 
@@ -87,10 +107,33 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 
 	static function isUntil(t : Token) : Bool
 		return t.match(Kwd(KwdUntil));
+	
+	static function isCnuf(t : Token) : Bool
+		return t.match(Kwd(KwdCnuf));
+
+	function parseDeclaration() : Expr
+	{
+		return switch stream {
+			case [Kwd(KwdFunc), Const(CIdent(name)), POpen, args = parseSeparated(argSeperator, parseArg), PClose, body = parseStatementList(isCnuf), Kwd(KwdCnuf)]:
+				EFunc(name, args, EBlock(body));
+		}
+	}
+
+	function argSeperator(token : Token) : Bool
+	{
+		return token == Comma;
+	}
+
+	function parseArg() : String
+	{
+		return switch stream {
+			case [Const(CIdent(name))]:
+				name;
+		}
+	}
 
 	function parseStatement() : Expr
 	{
-		//TODO: implement break and continue and make sure they can only exist in while or for blocks
 		return switch stream {
 			//TODO: make OpAssign and OpAssignOp statements
 			case [Kwd(KwdContinue), Semicolon]:
@@ -230,6 +273,8 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				str.join(" ");
 			case EField(e, field):
 				'${toString(e)}.$field';
+			case EFunc(name, args, body):
+				'func $name($args) ${toString(body)} cnuf';
 			case EFloor(e):
 				'FLOOR($e)';
 			case EReturn(e):
