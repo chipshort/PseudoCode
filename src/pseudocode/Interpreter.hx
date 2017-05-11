@@ -61,16 +61,7 @@ class Interpreter
             stack.push(map);
         }
 
-        // trace(stack.toString());
         map[field] = value;
-
-        trace(stack);
-        // var current = stack.peek();
-        // if (current == null) {
-        //     current = new Map<String, Dynamic>();
-        //     stack.push(current);
-        // }
-        // current[field] = value;
     }
 
     function define(field : String, value : Dynamic) : Void
@@ -87,13 +78,39 @@ class Interpreter
         var result : Dynamic = switch (expr) {
             case EFunc(name, args, body):
                 define(name, function (arguments : Array<Dynamic>) {
-                    stack.push(new Map<String, Dynamic>());
-                    //TODO: create stack
-                    eval(body);
+                    if (args.length != arguments.length)
+                        throw 'Cannot call $name with ${arguments.length} arguments';
+                    
+                    var s = new Map<String, Dynamic>();
+                    for (i in 0...args.length)
+                        s[args[i]] = arguments[i];
+
+                    stack.push(s);
+
+                    var ret = eval(body);
 
                     stack.pop();
+
+                    if (isReturn(ret)) {
+                        switch (ret) {
+                            case VReturn(v):
+                                return v;
+                            case _:
+                                throw '$ret is not valid in this context';
+                        }
+                    }
+
+                    return null;
                 });
                 null;
+            case ECall(e, args):
+                var func = eval(e);
+                var evalArgs = new Array<Dynamic>();
+                for (arg in args)
+                    evalArgs.push(eval(arg));
+                
+                trace(evalArgs);
+                func(evalArgs); //.(eval(e), args);
             case EBlock(exprs):
                 for (e in exprs) {
                     var value = eval(e);

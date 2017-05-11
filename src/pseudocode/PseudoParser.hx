@@ -114,7 +114,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 	function parseDeclaration() : Expr
 	{
 		return switch stream {
-			case [Kwd(KwdFunc), Const(CIdent(name)), POpen, args = parseSeparated(argSeperator, parseArg), PClose, body = parseStatementList(isCnuf), Kwd(KwdCnuf)]:
+			case [Kwd(KwdFunc), Const(CIdent(name)), POpen, args = parseSeparated(argSeperator, parseArgDef), PClose, body = parseStatementList(isCnuf), Kwd(KwdCnuf)]:
 				EFunc(name, args, EBlock(body));
 		}
 	}
@@ -124,7 +124,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 		return token == Comma;
 	}
 
-	function parseArg() : String
+	function parseArgDef() : String
 	{
 		return switch stream {
 			case [Const(CIdent(name))]:
@@ -218,6 +218,9 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				makeBinop(op, expr, next);
 			case [BkOpen, interval = parseExpr(), BkClose]: //Array access / creation
 				parseNext(EArray(expr, interval));
+			case [POpen, args = parseSeparated(argSeperator, parseExpr), PClose]:
+				//function call
+				ECall(expr, args);
 			case _:
 				expr;
 		}
@@ -265,9 +268,9 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 			case EBlock(exprs):
 				var str = new Array<String>();
 				str.push("{");
-				for (ex in exprs) {
+				for (ex in exprs)
 					str.push('${toString(ex)};');
-				}
+				
 				str.push("}");
 				
 				str.join(" ");
@@ -275,6 +278,12 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				'${toString(e)}.$field';
 			case EFunc(name, args, body):
 				'func $name($args) ${toString(body)} cnuf';
+			case ECall(e, args):
+				var str = new Array<String>();
+				for (arg in args)
+					str.push(toString(arg));
+
+				'${toString(e)}(${str.join(", ")})';
 			case EFloor(e):
 				'FLOOR($e)';
 			case EReturn(e):

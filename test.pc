@@ -12,10 +12,13 @@ while true do
     break;
 od
 
-return x;
-
-func a(a, b)
+func test(A)
+    A[1] <- 2;
 cnuf
+
+z <- test(A);
+return z;
+return A;
 
 l <- 1; r <- n;
 while l $\leq$ r do

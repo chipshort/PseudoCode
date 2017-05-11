@@ -12,8 +12,19 @@ enum Expr {
 	**/
 	EArray( e1 : Expr, e2 : Expr );
 
+	/**
+		Field access `e1.field`
+	**/
 	EField(e1 : Expr, field : String);
 
+	/**
+		Function call `e1(args)`
+	**/
+	ECall(e1 : Expr, args : Array<Expr>);
+
+	/**
+		Function declaration `func name(args) body cnuf`
+	**/
 	EFunc(name : String, args : Array<String>, body : Expr);
 
 	/**
