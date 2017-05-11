@@ -11,6 +11,8 @@ class Interpreter
     public function new()
     {
         stack.push(new Map<String, Dynamic>());
+        set("true", true);
+        set("false", false);
     }
 
     /** Execute `code` **/
@@ -21,6 +23,7 @@ class Interpreter
         var parsed = parser.parseCode();
         var result = eval(parsed);
         
+        trace(stack);
         if (isSpecial(result)) {
             switch (result) {
                 case VReturn(value):
@@ -38,6 +41,9 @@ class Interpreter
             return map.exists(field);
         });
 
+        if (map == null)
+            return null;
+
         return map[field];
     }
 
@@ -47,7 +53,24 @@ class Interpreter
             return map.exists(field);
         });
 
+        if (map == null)
+            map = stack.peek();
+
+        if (map == null) {
+            map = new Map<String, Dynamic>();
+            stack.push(map);
+        }
+
+        // trace(stack.toString());
         map[field] = value;
+
+        trace(stack);
+        // var current = stack.peek();
+        // if (current == null) {
+        //     current = new Map<String, Dynamic>();
+        //     stack.push(current);
+        // }
+        // current[field] = value;
     }
 
     function define(field : String, value : Dynamic) : Void

@@ -6,19 +6,14 @@ class Stack<T>
 
     public function new()
     {
-
     }
 
     public function push(x : T) : Void
     {
         var elem = new StackElem(x);
-        if (top == null) {
-            top = elem;
-        }
-        else {
-            elem.prev = top;
-            top = elem; 
-        }
+        elem.prev = top;
+        
+        top = elem;
     }
 
     public function pop() : T
@@ -45,9 +40,16 @@ class Stack<T>
         while (elem != null) {
             if (func(elem.value))
                 return elem.value;
+            elem = elem.prev;
         }
 
         return null;
+    }
+
+    public function toString() : String
+    {
+        if (top == null) return "[]";
+        return "[" + top.toString() + "]";
     }
 }
 
@@ -59,5 +61,20 @@ class StackElem<T>
     public function new(v : T)
     {
         value = v;
+    }
+
+    public function toString() : String
+    {
+        return (value != null ? valToString() : "null") + (prev != null ? ", " + prev.toString() : "");
+    }
+
+    function valToString() : String
+    {
+        var str = new Array<String>();
+        var v = cast(value, Map<String, Dynamic>);
+        for (key in v.keys()) {
+            str.push(key + " => " + v.get(key));
+        }
+        return "[" + str.join(", ") + "]";
     }
 }
