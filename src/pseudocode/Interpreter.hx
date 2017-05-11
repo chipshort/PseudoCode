@@ -91,7 +91,7 @@ class Interpreter
 
                     stack.pop();
 
-                    if (isReturn(ret)) {
+                    if (isSpecial(ret)) {
                         switch (ret) {
                             case VReturn(v):
                                 return v;

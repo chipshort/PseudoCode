@@ -27,6 +27,8 @@ enum Expr {
 	**/
 	EFunc(name : String, args : Array<String>, body : Expr);
 
+	//TODO: add class
+
 	/**
 		Binary operator `e1 op e2`.
 	**/
