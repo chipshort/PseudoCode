@@ -277,7 +277,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 			case EField(e, field):
 				'${toString(e)}.$field';
 			case EFunc(name, args, body):
-				'func $name($args) ${toString(body)} cnuf';
+				'func $name($args) ${toString(body)}';
 			case ECall(e, args):
 				var str = new Array<String>();
 				for (arg in args)

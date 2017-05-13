@@ -1,0 +1,8 @@
+{
+    "code": "func a(a,b,c)
+        return 0;
+    cnuf
+    a(1,2,3);
+    ",
+    "expected": "func a([a,b,c]) { return 0; }; a(1, 2, 3);"
+}

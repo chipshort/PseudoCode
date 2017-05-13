@@ -15,7 +15,9 @@ class Interpreter
         set("false", false);
     }
 
-    /** Execute `code` **/
+    /**
+        Execute `code`
+    **/
     public function execute(code : String) : Dynamic
     {
         var input = byte.ByteData.ofString(code);
@@ -35,6 +37,10 @@ class Interpreter
         return result;
     }
 
+    /**
+        Gets the value of `field`.
+        This looks for the "nearest" stack that contains `field`.
+    **/
     function get(field : String) : Dynamic
     {
         var map = stack.findFirst(function (map) {
@@ -47,6 +53,12 @@ class Interpreter
         return map[field];
     }
 
+    /**
+        Sets the value of `field` to `value`.
+        This looks for the "nearest" stack that contains `field`.
+        If `field` already exists, it is overwritten,
+        otherwise field is declared in the current stack.
+    **/
     function set(field : String, value : Dynamic) : Void
     {
         var map = stack.findFirst(function (map) {
@@ -64,6 +76,9 @@ class Interpreter
         map[field] = value;
     }
 
+    /**
+        Sets the value of `field` in the current top stack to `value`
+    **/
     function define(field : String, value : Dynamic) : Void
     {
         stack.peek()[field] = value;
