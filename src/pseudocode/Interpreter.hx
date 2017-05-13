@@ -25,7 +25,6 @@ class Interpreter
         var parsed = parser.parseCode();
         var result = eval(parsed);
         
-        trace(stack);
         if (isSpecial(result)) {
             switch (result) {
                 case VReturn(value):
@@ -124,8 +123,7 @@ class Interpreter
                 for (arg in args)
                     evalArgs.push(eval(arg));
                 
-                trace(evalArgs);
-                func(evalArgs); //.(eval(e), args);
+                func(evalArgs); //.(eval(e), args); //TODO: this does not work with normal functions, only array boxed functions.
             case EBlock(exprs):
                 for (e in exprs) {
                     var value = eval(e);
@@ -176,7 +174,7 @@ class Interpreter
                     case OpAnd:
                         eval(e1) & eval(e2);
                     case OpAssignOp(op):
-                        throw "OpAssignOp not implemented yet";
+                        eval(EBinop(OpAssign, e1, EBinop(op, e1, e2)));
                         null; //TODO: implement
                     case OpBoolAnd:
                         eval(e1) && eval(e2);
@@ -220,7 +218,6 @@ class Interpreter
                 Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
                 stack.push(new Map<String, Dynamic>());
-                trace(id);
                 var realId = eval(id);
                 var i = eval(start);
                 define(realId, i);

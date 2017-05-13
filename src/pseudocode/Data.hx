@@ -315,16 +315,18 @@ enum Token {
 	// Comment(s:String);
 	CommentLine(s:String);
 	Semicolon;
-	Dot; //TODO: implement dot access
-	Comma; //TODO: use comma token?
-	BkOpen;
-	BkClose;
+	Dot;
+	Comma;
+	BkOpen; //[
+	BkClose; //]
+	BrOpen; //{
+	BrClose; //}
 
 	FloorOpen; //⌊
 	FloorClose; //⌋
 	//TODO: maybe ceil too?
 
-	POpen;
-	PClose;
+	POpen; //(
+	PClose; //)
 	Eof;
 }
