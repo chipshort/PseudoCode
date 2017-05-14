@@ -37,6 +37,8 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				else {
 					EUnop(op, false, expr);
 				}
+			case [Kwd(KwdNew), Const(CIdent(name))]:
+				ENew(name);
 			case [FloorOpen, expr = parseExpr(), FloorClose]:
 				parseNext(EFloor(expr));
 			case [POpen, expr = parseExpr(), PClose]:
@@ -114,10 +116,35 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 	function parseDeclaration() : Expr
 	{
 		return switch stream {
+			case [Kwd(KwdClass), Const(CIdent(name)), BrOpen, body = parseClassBody(), BrClose]:
+				EClass(name, body);
+			case [f = parseFunction()]:
+				f;
+		}
+	}
+
+	function parseFunction() : Expr
+	{
+		return switch stream {
 			case [Kwd(KwdFunc), Const(CIdent(name)), POpen, args = parseSeparated(argSeperator, parseArgDef), PClose, body = parseStatementList(isCnuf), Kwd(KwdCnuf)]:
 				EFunc(name, args, EBlock(body));
-
 		}
+	}
+
+	function parseClassBody() : Array<Expr>
+	{
+		var list = new Array<Expr>();
+
+		while (!peek(0).match(BrClose)) {
+			switch stream {
+				case [Const(CIdent(type)), Const(CIdent(name)), Semicolon]:
+					list.push(EConst(CIdent(name)));
+				case [f = parseFunction()]:
+					list.push(f);
+			}
+		}
+
+		return list;
 	}
 
 	function argSeperator(token : Token) : Bool
@@ -279,6 +306,10 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				'${toString(e)}.$field';
 			case EFunc(name, args, body):
 				'func $name($args) ${toString(body)}';
+			case EClass(name, body):
+				'class $name ${toString(EBlock(body))}';
+			case ENew(name):
+				'new $name';
 			case ECall(e, args):
 				var str = new Array<String>();
 				for (arg in args)
