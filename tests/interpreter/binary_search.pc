@@ -1,0 +1,26 @@
+x <- 3;
+n <- 5;
+A[1..n];
+A[1] <- 1;
+A[2] <- 2;
+A[3] <- 3;
+A[4] <- 4;
+A[5] <- 5;
+
+func binary_search(A, x)
+    l <- 1; r <- A.length;
+    while l $\leq$ r do
+        m <- $\lfloor$ (l + r) / 2 $\rfloor$;
+        if A[m] = x then
+            return m;
+        fi
+        if x > A[m] then
+            l <- m + 1;
+        else
+            r <- m + 1;
+        fi
+    od
+    return 0;
+cnuf
+
+return (binary_search(A, x) = 3);
