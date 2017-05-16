@@ -1,0 +1,11 @@
+val <- 0;
+for a = 1 to 10 do
+    val++;
+od
+
+val2 <- 0;
+for a = 10 downto 1 do
+    val2 <- a;
+od
+
+return val = 10 $\land$ val2 = 1;

@@ -1,0 +1,30 @@
+func linear_search(A, x)
+    i <- 1;
+    while i $\leq$ n $\land$ A[i] $\neq$ x do
+        i <- i + 1;
+    od
+    if i > n then i <- 0; fi
+
+    return i;
+cnuf
+
+val <- 6;
+n <- 5;
+A[1..n];
+A[1] <- 1;
+A[2] <- 2;
+A[3] <- 3;
+A[4] <- 4;
+A[5] <- 5;
+
+for a = 1 to n do
+    if linear_search(A, a) $\neq$ a then
+        return false;
+    fi
+od
+
+if linear_search(A, n + 1) $\neq$ 0 then
+    return false;
+fi
+
+return true;

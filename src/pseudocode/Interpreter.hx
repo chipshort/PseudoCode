@@ -230,23 +230,46 @@ class Interpreter
                 define(realId, i);
                 //var i = memory[realId] = eval(start);
                 var realEnd = eval(end);
-                while (i <= realEnd) {
-                    var val = eval(body);
-                    if (isSpecial(val)) {
-                        switch (val) {
-                            case VReturn(_):
-                                stack.pop();
-                                return val;
-                            case VBreak:
-                                break;
-                            case VContinue:
-                                //don't do anything here, as we will continue anyway
-                        }
-                    }
 
-                    i = get(realId) + 1;
-                    set(realId, i);
+                if (up) {
+                    while (i <= realEnd) {
+                        var val = eval(body);
+                        if (isSpecial(val)) {
+                            switch (val) {
+                                case VReturn(_):
+                                    stack.pop();
+                                    return val;
+                                case VBreak:
+                                    break;
+                                case VContinue:
+                                    //don't do anything here, as we will continue anyway
+                            }
+                        }
+
+                        i = get(realId) + 1;
+                        set(realId, i);
+                    }
                 }
+                else {
+                    while (i >= realEnd) {
+                        var val = eval(body);
+                        if (isSpecial(val)) {
+                            switch (val) {
+                                case VReturn(_):
+                                    stack.pop();
+                                    return val;
+                                case VBreak:
+                                    break;
+                                case VContinue:
+                                    //don't do anything here, as we will continue anyway
+                            }
+                        }
+
+                        i = Std.int(get(realId) - 1);
+                        set(realId, i);
+                    }
+                }
+                
                 stack.pop();
                 null;
             case EWhile(cond, body, normal):

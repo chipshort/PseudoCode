@@ -175,7 +175,7 @@ enum Binop {
 	/**
 		`-`
 	**/
-	OpSub;
+	OpSub; //TODO: parse negative numbers
 
 	/**
 		`<-`

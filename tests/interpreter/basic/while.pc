@@ -1,0 +1,6 @@
+a <- 10;
+while a > 0 do
+    a--;
+od
+
+return a = 0;
