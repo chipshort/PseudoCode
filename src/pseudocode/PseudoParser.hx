@@ -220,7 +220,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				parseNext(EArray(expr, interval));
 			case [POpen, args = parseSeparated(argSeperator, parseExpr), PClose]:
 				//function call
-				ECall(expr, args);
+				parseNext(ECall(expr, args));
 			case _:
 				expr;
 		}
