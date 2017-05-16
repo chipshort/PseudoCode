@@ -13,6 +13,7 @@ class Interpreter
         stack.push(new Map<String, Dynamic>());
         set("true", true);
         set("false", false);
+        set("trace", function (args) { Sys.println(args[0]); });
     }
 
     /**
@@ -25,7 +26,6 @@ class Interpreter
         var parsed = parser.parseCode();
         var result = eval(parsed);
         
-        trace(stack);
         if (isSpecial(result)) {
             switch (result) {
                 case VReturn(value):
@@ -124,7 +124,6 @@ class Interpreter
                 for (arg in args)
                     evalArgs.push(eval(arg));
                 
-                trace(evalArgs);
                 func(evalArgs); //.(eval(e), args);
             case EBlock(exprs):
                 for (e in exprs) {
@@ -220,8 +219,13 @@ class Interpreter
                 Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
                 stack.push(new Map<String, Dynamic>());
-                trace(id);
-                var realId = eval(id);
+
+                var realId = switch (id) {
+                    case EConst(CIdent(realId)):
+                        realId;
+                    case _:
+                        throw "For statement not parsed correctly";
+                }
                 var i = eval(start);
                 define(realId, i);
                 //var i = memory[realId] = eval(start);
