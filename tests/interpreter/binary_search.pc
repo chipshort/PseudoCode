@@ -23,4 +23,4 @@ func binary_search(A, x)
     return 0;
 cnuf
 
-return (binary_search(A, x) = 3);
+return binary_search(A, x) = 3;
