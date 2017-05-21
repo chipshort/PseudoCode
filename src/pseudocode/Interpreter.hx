@@ -16,7 +16,7 @@ class Interpreter
         set("true", true);
         set("false", false);
         set("NULL", null);
-        set("trace", function (args) { Sys.println(args[0]); });
+        set("trace", function (args) { Sys.println(args[1]); });
     }
 
     /**
@@ -123,8 +123,18 @@ class Interpreter
                 
                 obj;
             case ECall(e, args):
-                var func = eval(e);
                 var evalArgs = new Array<Dynamic>();
+
+                var func = switch (e) {
+                    case EField(e1, field):
+                        var obj = eval(e1);
+                        evalArgs.push(obj); //object as first argument
+                        Reflect.getProperty(obj, field);
+                    default:
+                        evalArgs.push(null);
+                        eval(e);
+                }
+                
                 for (arg in args)
                     evalArgs.push(eval(arg));
                 
@@ -393,17 +403,28 @@ class Interpreter
     function createPseudoFunction(name : String, args : Array<Dynamic>, body : Expr)
     {
         return function (arguments : Array<Dynamic>) {
-             if (args.length != arguments.length)
-                throw 'Cannot call $name with ${arguments.length} arguments';
+             if (arguments.length != args.length + 1) //`this` as first argument
+                throw 'Cannot call $name with ${args.length} arguments';
 
+            var thizMap = new Map<String, Dynamic>();
+            var thiz = arguments[0];
+            for (field in Reflect.fields(thiz))
+                thizMap[field] = Reflect.field(thiz, field);
+
+            stack.push(thizMap);
+            
             var s = new Map<String, Dynamic>();
             for (i in 0...args.length)
-                s[args[i]] = arguments[i];
+                s[args[i]] = arguments[i + 1];
 
             stack.push(s);
 
             var ret = eval(body);
 
+            for (field in thizMap.keys())
+                Reflect.setField(thiz, field, thizMap[field]);
+
+            stack.pop();
             stack.pop();
 
             if (isSpecial(ret)) {

@@ -1,0 +1,27 @@
+class list {
+    list_elem Kopf;
+
+    func push(x)
+        p <- new list_elem;
+        p.inhalt <- x;
+        p.next <- Kopf;
+        Kopf <- p;
+    cnuf
+
+    func pop()
+        x <- Kopf.inhalt;
+        Kopf <- Kopf.next;
+        return x;
+    cnuf
+}
+
+class list_elem {
+    int inhalt;
+    list_elem next;
+}
+
+lst <- new list;
+lst.push(2);
+lst.push(4);
+
+return lst.pop() = 4 $\land$ lst.pop() = 2;

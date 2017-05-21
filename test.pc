@@ -7,25 +7,6 @@ A[3] <- 3;
 A[4] <- 4;
 A[5] <- 5;
 
-class list_elem {
-    int inhalt;
-    list_elem next;
-
-    func something()
-        return inhalt; //TODO: null
-    cnuf
-}
-
-test <- new list_elem;
-test.inhalt <- 4;
-
-next <- new list_elem;
-next.inhalt <- 5;
-
-test.next <- next;
-
-return test.something();
-
 while true do
     j <- 1;
     break;
