@@ -13,6 +13,7 @@ class Interpreter
         stack.push(new Map<String, Dynamic>());
         set("true", true);
         set("false", false);
+        set("NULL", null);
         set("trace", function (args) { Sys.println(args[0]); });
     }
 

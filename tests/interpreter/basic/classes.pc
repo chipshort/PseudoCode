@@ -1,0 +1,11 @@
+class list_elem {
+    int v;
+    list_elem next;
+
+    func a()
+        return true;
+    cnuf
+}
+
+a <- new list_elem;
+return a.a();
