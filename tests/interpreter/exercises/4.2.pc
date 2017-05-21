@@ -1,0 +1,72 @@
+class Elem {
+	int value;
+	Elem next;
+}
+
+class Queue {
+	Elem t;
+	Elem ende;
+	
+	func isEmpty()
+		if t = NULL then
+			return true;
+		fi
+		return false;
+	cnuf
+	
+	func push(x)
+		elem <- new Elem;
+        elem.value <- x;
+		
+		if t = NULL then
+			t <- elem;
+		else
+			ende.next <- elem;
+		fi
+		
+		ende <- elem;
+	cnuf
+	
+	func top()
+		if t = NULL then
+			return NULL;
+		fi
+		return t.value;
+	cnuf	
+	
+	func pop()
+		if t = NULL then
+			return NULL;
+		fi
+		x <- t.value;
+		t <- t.next;
+		
+		if t = NULL then
+			ende <- NULL;
+		fi
+		return x;
+	cnuf
+}
+
+q <- new Queue;
+q.push(0);
+q.push(1);
+q.push(2);
+q.push(3);
+q.push(4);
+q.push(5);
+q.push(6);
+q.push(7);
+
+current <- q.t;
+i <- 0;
+while current $\neq$ NULL do
+    if i $\neq$ current.value then
+        return false;
+    fi
+
+    ++i;
+    current <- current.next;
+od
+
+return true;

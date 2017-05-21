@@ -1,0 +1,131 @@
+class Listelem {
+	int value;
+	Listelem next;
+	Listelem prev;
+}
+
+class List {
+	Listelem start;
+	Listelem end;
+	
+	func insert(pos, x)
+		nextPos <- pos.next;
+		pos.next <- new Listelem;
+        pos.next.value <- x;
+		pos.next.next <- nextPos;	
+		pos.next.prev <- pos;
+		if nextPos $\neq$ NULL then
+			nextPos.prev <- pos.next;
+		fi
+		
+		if pos = end then
+			end <- pos.next;
+		fi
+	cnuf
+	
+	func delete(elem)
+		if elem.next $\neq$ NULL then
+			elem.next.prev <- elem.prev;
+		else
+			end <- elem.prev;
+		fi
+		if elem.prev $\neq$ NULL then
+			elem.prev.next <- elem.next;
+		else
+			start <- elem.next;
+		fi
+	cnuf
+	
+	func find(x)
+		current <- start;
+		
+		while current $\neq$ NULL do
+			if current.value $\neq$ x then
+				current <- current.next;
+			else
+				return current;			
+			fi
+		od
+		return NULL;
+	cnuf
+	
+	func swap(a, b)
+		if b.next = a then
+			tmp <- a;
+			a <- b;
+			b <- tmp;
+		fi
+
+		anext <- a.next;
+		bprev <- b.prev;
+
+		if anext = b then
+			a.next <- b.next;
+			b.prev <- a.prev;
+
+			if b.next $\neq$ NULL then
+				b.next.prev <- a;
+			fi
+			if a.prev $\neq$ NULL then
+				a.prev.next <- b;
+			fi
+			a.prev <- b;
+			b.next <- a;
+		else
+			a.next <- b.next;
+			b.prev <- a.prev;
+
+			if a.prev $\neq$ NULL then
+				a.prev.next <- b;
+			fi
+			if bprev $\neq$ NULL then
+				bprev.next <- a;
+			fi
+			if anext $\neq$ NULL then
+				anext.prev <- b;
+			fi
+			if b.next $\neq$ NULL then
+				b.next.prev <- a;
+			fi
+			
+			a.prev <- bprev;
+			b.next <- anext;
+		fi
+
+		if a = start then
+			start <- b;
+		else if b = start then
+			    start <- a;
+            fi
+		fi
+		
+		if a = end then
+			end <- b;
+		else if b = end then
+			    end <- a;
+            fi
+		fi
+	cnuf
+}
+
+test <- new List;
+test.start <- new Listelem;
+test.start.value <- 0;
+test.end <- test.start;
+
+test.insert(test.start, 1);
+test.insert(test.start.next, 2);
+test.insert(test.start.next.next, 3);
+test.insert(test.start.next.next.next, 4);
+
+current <- test.start;
+i <- 0;
+while current $\neq$ NULL do
+    if current.value $\neq$ i then
+        return false;
+    fi
+    current <- current.next;
+    ++i;
+od
+
+return true;
