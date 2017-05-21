@@ -23,11 +23,19 @@ enum Expr {
 	ECall(e1 : Expr, args : Array<Expr>);
 
 	/**
+		Class constructor call `new cls`
+	**/
+	ENew(cls : String);
+
+	/**
 		Function declaration `func name(args) body cnuf`
 	**/
 	EFunc(name : String, args : Array<String>, body : Expr);
 
-	//TODO: add class
+	/**
+		Class declaration `class name { body }`
+	**/
+	EClass(name : String, body : Array<Expr>);
 
 	/**
 		Binary operator `e1 op e2`.
@@ -284,6 +292,9 @@ enum Keyword {
 	//TODO: add something like trace
 	KwdFunc; //TODO: implement functions
 	KwdCnuf;
+	
+	KwdClass;
+	KwdNew;
 
 	KwdIf;
 	KwdThen;

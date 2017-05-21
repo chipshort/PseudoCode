@@ -1,0 +1,9 @@
+{
+    "code": "class list_elem {
+        int a;
+        list_elem next;
+    }
+    elem <- new list_elem;
+    ",
+    "expected": "class list_elem { a; next; }; (elem OpAssign new list_elem);"
+}

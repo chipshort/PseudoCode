@@ -8,6 +8,8 @@ class Interpreter
     /** Contains all variables and their values **/
     public var stack = new util.Stack<Map<String, Dynamic>>();
 
+    public var classes = new Map<String, Map<String, Dynamic>>();
+
     public function new()
     {
         stack.push(new Map<String, Dynamic>());
@@ -93,32 +95,33 @@ class Interpreter
     {
         var result : Dynamic = switch (expr) {
             case EFunc(name, args, body):
-                define(name, function (arguments : Array<Dynamic>) {
-                    if (args.length != arguments.length)
-                        throw 'Cannot call $name with ${arguments.length} arguments';
-                    
-                    var s = new Map<String, Dynamic>();
-                    for (i in 0...args.length)
-                        s[args[i]] = arguments[i];
-
-                    stack.push(s);
-
-                    var ret = eval(body);
-
-                    stack.pop();
-
-                    if (isSpecial(ret)) {
-                        switch (ret) {
-                            case VReturn(v):
-                                return v;
-                            case _:
-                                throw '$ret is not valid in this context';
-                        }
-                    }
-
-                    return null;
-                });
+                define(name, createPseudoFunction(name, args, body));
                 null;
+            case EClass(name, body):
+                var cls = new Map<String, Dynamic>();
+                for (decl in body) {
+                    switch (decl) {
+                        case EConst(CIdent(variable)):
+                            cls.set(variable, null);
+                        case EFunc(n, args, body):
+                            cls.set(n, createPseudoFunction(name + "." + n, args, body));
+                        case _:
+                            throw "You cannot declare " + decl + " in a class.";
+                    }
+                }
+                classes.set(name, cls);
+                null;
+            case ENew(cls):
+                var obj = {};
+
+                var clazz = classes.get(cls);
+                if (clazz == null)
+                    throw "Cannot create an instance of " + cls + " - class not found";
+                
+                for (field in clazz.keys())
+                    Reflect.setField(obj, field, clazz.get(field)); //TODO: find out if classes can have functions in them, if yes, scoping is needed
+                
+                obj;
             case ECall(e, args):
                 var func = eval(e);
                 var evalArgs = new Array<Dynamic>();
@@ -169,6 +172,8 @@ class Interpreter
                             case EArray(EConst(CIdent(name)), index): //A[1] <- 2
                                 var array : PArray = get(name);
                                 array[eval(index)] = eval(e2);
+                            case EField(e, field):
+                                Reflect.setProperty(eval(e),field, eval(e2));
                             case _:
                                 throw 'Cannot assign to $e1';
                         }
@@ -383,6 +388,35 @@ class Interpreter
         }
 
         return result;
+    }
+
+    function createPseudoFunction(name : String, args : Array<Dynamic>, body : Expr)
+    {
+        return function (arguments : Array<Dynamic>) {
+             if (args.length != arguments.length)
+                throw 'Cannot call $name with ${arguments.length} arguments';
+
+            var s = new Map<String, Dynamic>();
+            for (i in 0...args.length)
+                s[args[i]] = arguments[i];
+
+            stack.push(s);
+
+            var ret = eval(body);
+
+            stack.pop();
+
+            if (isSpecial(ret)) {
+                switch (ret) {
+                    case VReturn(v):
+                        return v;
+                    case _:
+                        throw '$ret is not valid in this context';
+                }
+            }
+
+            return null;
+        }
     }
 
     static inline function isReturn(v : Dynamic) : Bool

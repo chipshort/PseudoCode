@@ -48,6 +48,8 @@ class PseudoLexer extends Lexer implements hxparse.RuleBuilder
 		"=" => Binop(OpEq),
 		"[" => BkOpen,
 		"]" => BkClose,
+		"{" => BrOpen,
+		"}" => BrClose,
 		"\\(" => POpen,
         "\\)" => PClose,
 		"\\$\\\\lfloor\\$" => FloorOpen,
