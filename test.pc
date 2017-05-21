@@ -14,9 +14,11 @@ od
 
 func test(A)
     A[1] <- 2;
+    return 1;
 cnuf
 
 z <- test(A);
+z += 5;
 return z;
 return A;
 

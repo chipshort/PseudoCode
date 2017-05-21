@@ -116,6 +116,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 		return switch stream {
 			case [Kwd(KwdFunc), Const(CIdent(name)), POpen, args = parseSeparated(argSeperator, parseArgDef), PClose, body = parseStatementList(isCnuf), Kwd(KwdCnuf)]:
 				EFunc(name, args, EBlock(body));
+
 		}
 	}
 

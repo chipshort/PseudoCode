@@ -175,7 +175,7 @@ class Interpreter
                     case OpAnd:
                         eval(e1) & eval(e2);
                     case OpAssignOp(op):
-                        throw "OpAssignOp not implemented yet";
+                        eval(EBinop(OpAssign, e1, EBinop(op, e1, e2)));
                         null; //TODO: implement
                     case OpBoolAnd:
                         eval(e1) && eval(e2);
@@ -219,7 +219,7 @@ class Interpreter
                 Math.floor(eval(expr));
             case EFor(id, start, end, body, up):
                 stack.push(new Map<String, Dynamic>());
-
+                
                 var realId = switch (id) {
                     case EConst(CIdent(realId)):
                         realId;
