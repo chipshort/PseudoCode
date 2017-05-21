@@ -15,7 +15,6 @@ func binary_search(A, x)
     return 0;
 cnuf
 
-x <- 3;
 n <- 5;
 A[1..n];
 A[1] <- 1;
