@@ -16,6 +16,7 @@ class Interpreter
         set("true", true);
         set("false", false);
         set("NULL", null);
+        set("random", function (args) { return Math.random(); });
         set("trace", function (args) { Sys.println(args[1]); });
     }
 
