@@ -1,0 +1,49 @@
+func sink(i,r)
+    x <- A[i];
+    j <- 2*i;
+
+    while j $\leq$ r do
+        if j < r then
+            if A[j] < A[j+1] then
+                j++;
+            fi
+        fi
+
+        if A[j] $\leq$ x then
+            break;
+        fi
+        A[i] <- A[j];
+        i <- j;
+        j <- 2*i;
+    od
+    A[i] <- x;
+cnuf
+
+func heapsort()
+    for i = ($\lfloor$ (n/2) $\rfloor$) downto 1 do
+        sink(i, n);
+    od
+
+    r <- n;
+    while r $\geq$ 2 do
+        tmp <- A[1];
+        A[1] <- A[r];
+        A[r] <- tmp;
+        r--;
+        sink(1,r);
+    od
+cnuf
+
+
+n <- 10;
+A[1..n];
+
+for i = 1 to n do
+    A[i] <- $\lfloor$ random() * n $\rfloor$;
+od
+
+trace(A);
+
+heapsort();
+
+trace(A);
