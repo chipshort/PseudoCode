@@ -38,12 +38,17 @@ cnuf
 n <- 10;
 A[1..n];
 
-for i = 1 to n do
-    A[i] <- $\lfloor$ random() * n $\rfloor$;
+for k = 1 to 50 do
+    for i = 1 to n do
+        A[i] <- $\lfloor$ random() * n $\rfloor$;
+    od
+
+    heapsort();
+
+    for i = 1 to n-1 do
+        if A[i] > A[i+1] then return false; fi
+    od
 od
 
-trace(A);
 
-heapsort();
-
-trace(A);
+return true;

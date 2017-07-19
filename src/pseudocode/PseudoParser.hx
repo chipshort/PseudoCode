@@ -202,7 +202,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 				EWhile(cond, EBlock(body), true);
 			case [Kwd(KwdRepeat), _ = canBreak.push(true), body = parseStatementList(isUntil), _ = canBreak.pop(), Kwd(KwdUntil), until = parseStatement()]:
 				var cond = EUnop(OpNot, false, until);
-				EWhile(EBlock(body), cond, false);
+				EWhile(cond, EBlock(body), false);
 			case [CommentLine(_)]:
 				parseOptional(parseStatement);
 			case [Kwd(KwdReturn)]:
@@ -328,7 +328,7 @@ class PseudoParser extends Parser<LexerTokenSource<Token>, Token> implements Par
 			case EParenthesis(e):
 				'(${toString(e)})';
 			case EWhile(cond, e, false):
-				'do ${toString(cond)} while ${toString(e)}';
+				'do ${toString(e)} while ${toString(cond)}';
 			case EWhile(cond, e, true):
 				'while ${toString(cond)} ${toString(e)}';
 			case EUnop(op, false, e):
