@@ -1,15 +1,4 @@
-# Haxe project
+# PseudoCode
 
-This is an example Haxe project scaffolded by Visual Studio Code.
-
-Without further changes the structure is following:
-
- * `.vscode/settings.json`: VS Code workspace configuration
- * `.vscode/tasks.json`: VS Code build task configuration
- * `src/Main.hx`: Entry point Haxe source file
- * `build.hxml`: Haxe command line file used to build the project
- * `README.md`: This file
-
-Build output:
-
- * `main.js`: JavaScript file, generated when building the project
+This is a pet project, I developed during my algorithms class in University.
+It provides an parser and interpreter for the pseudo code syntax my professor used for his code listings.
